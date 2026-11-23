@@ -1,0 +1,26 @@
+{
+  "name": "cottid-africa-food-basket",
+  "private": true,
+  "version": "0.34.0",
+  "description": "Africa Food Basket Platform by Cottid Africa: Firebase sign-in, database, hosting.",
+  "type": "module",
+  "scripts": {
+    "build:fire": "esbuild firebase/src/fire.js --bundle --minify --format=iife --global-name=CottidFireLib --target=es2020 --outfile=public/fire.js",
+    "build": "npm run build:fire && node firebase/tools/build-page.mjs",
+    "seed": "node firebase/tools/seed.mjs",
+    "make-admin": "node firebase/tools/make-admin.mjs",
+    "serve": "npm run build && firebase serve --only hosting",
+    "deploy": "npm run build && firebase deploy --only hosting,firestore"
+  },
+  "dependencies": {
+    "firebase": "^13.4.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "firebase-admin": "^13.0.0",
+    "firebase-tools": "^14.0.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

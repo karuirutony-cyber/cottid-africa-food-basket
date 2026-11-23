@@ -1,0 +1,123 @@
+{
+  "brand": {
+    "name": "Africa Food Basket",
+    "by": "na Cottid Africa",
+    "home": "Africa Food Basket, mwanzo"
+  },
+  "a11y": {
+    "skip": "Ruka hadi maudhui makuu",
+    "menu": "Menyu",
+    "closeMenu": "Funga menyu",
+    "sections": "Sehemu za jukwaa",
+    "pages": "Kurasa za sehemu hii",
+    "language": "Lugha"
+  },
+  "section": {
+    "home": "Mwanzo",
+    "countries": "Nchi",
+    "analytics": "Uchambuzi",
+    "cost": "Gharama za Uagizaji",
+    "directory": "Saraka",
+    "policy": "Sera na maendeleo",
+    "data": "Takwimu",
+    "about": "Kuhusu",
+    "account": "Akaunti",
+    "org": "Shirika",
+    "contribute": "Changia",
+    "admin": "Utawala"
+  },
+  "page": {
+    "countries": "Nchi zote",
+    "country": "Wasifu wa nchi",
+    "diet": "Mlo",
+    "trade": "Biashara ya chakula",
+    "compare": "Linganisha",
+    "planner": "Mpangaji",
+    "projections": "Makadirio",
+    "review": "Tathmini ya utabiri",
+    "advisory": "Ushauri",
+    "briefs": "Muhtasari",
+    "matrix": "Jedwali la gharama",
+    "calculator": "Kikokotoo",
+    "origins": "Vyanzo",
+    "markets": "Masoko",
+    "buyers": "Wanunuzi",
+    "sellers": "Wauzaji",
+    "compliance": "Uzingatiaji",
+    "events": "Matukio",
+    "agreements": "Mikataba",
+    "interventions": "Afua",
+    "funders": "Wafadhili",
+    "calls": "Miito ya mapendekezo",
+    "explorer": "Kichunguzi cha takwimu",
+    "apis": "API",
+    "sources": "Vyanzo vya takwimu",
+    "about": "Kuhusu jukwaa",
+    "methods": "Mbinu",
+    "terms": "Masharti",
+    "signin": "Ingia",
+    "signup": "Fungua akaunti",
+    "reset": "Weka upya nenosiri lako",
+    "account": "Akaunti yako",
+    "saved": "Mionekano iliyohifadhiwa",
+    "alerts": "Arifa za tahadhari",
+    "apiKeys": "Funguo za API",
+    "notifications": "Arifa",
+    "org": "Shirika",
+    "members": "Wanachama",
+    "settings": "Mipangilio",
+    "contribute": "Pendekeza marekebisho au rekodi mpya",
+    "adminHome": "Dashibodi ya utawala",
+    "adminReview": "Foleni ya ukaguzi",
+    "adminDirectory": "Rekodi za saraka",
+    "adminContent": "Maudhui",
+    "adminPrices": "Bei",
+    "adminDuties": "Ushuru",
+    "adminSources": "Vyanzo vya takwimu",
+    "adminDatasets": "Seti za takwimu",
+    "adminIngest": "Ukusanyaji wa takwimu",
+    "adminUsers": "Watumiaji",
+    "adminOrganisations": "Mashirika",
+    "adminAudit": "Kumbukumbu za ukaguzi",
+    "adminSettings": "Mipangilio ya jukwaa"
+  },
+  "home": {
+    "h1": "<em>Kikapu cha chakula</em> cha Afrika: kinacholimwa, kinachouzwa, kinachoagizwa",
+    "kicker": "Africa Food Basket",
+    "tasks": "Anza na kazi",
+    "task": {
+      "countries": "Ona kile nchi inalima, inakula, inaagiza na kuuza nje.",
+      "analytics": "Panga uzalishaji, soma makadirio na upate ushauri.",
+      "cost": "Pata chanzo cha bei nafuu zaidi kwa soko, hadi kufika.",
+      "directory": "Pata wanunuzi, wauzaji, kanuni na matukio.",
+      "policy": "Fuatilia mikataba, afua, wafadhili na miito iliyo wazi.",
+      "data": "Chunguza, pakua au uliza kila mfululizo wa takwimu na chanzo chake."
+    }
+  },
+  "status": {
+    "building": "Ukurasa huu unajengwa upya kutoka kwenye jukwaa la sasa. Takwimu zake zitaonekana hapa zitakapolingana kikamilifu na za jukwaa la sasa.",
+    "dataNotAvailable": "Takwimu hazipatikani",
+    "loading": "Inapakia…",
+    "offline": "Uko nje ya mtandao. Kurasa ulizofungua awali bado zinafanya kazi; takwimu mpya zitapakia ukiunganishwa tena.",
+    "backOnline": "Umerudi mtandaoni."
+  },
+  "system": {
+    "notFoundTitle": "Ukurasa haukupatikana",
+    "notFoundBody": "Hatukuweza kupata ukurasa huo. Huenda umehamishwa, au anwani si sahihi.",
+    "offlineTitle": "Uko nje ya mtandao",
+    "offlineBody": "Ukurasa huu unahitaji mtandao mara ya kwanza unapoufungua. Unganisha tena kisha ujaribu tena.",
+    "maintenanceTitle": "Jukwaa liko kwenye matengenezo",
+    "maintenanceBody": "Tunasasisha jukwaa. Tafadhali rudi baada ya muda mfupi.",
+    "goHome": "Nenda ukurasa wa mwanzo",
+    "retry": "Jaribu tena"
+  },
+  "action": {
+    "suggest": "Pendekeza marekebisho",
+    "signIn": "Ingia",
+    "install": "Sakinisha programu"
+  },
+  "footer": {
+    "rights": "© {{year}} Cottid Africa. Haki zote zimehifadhiwa.",
+    "tagline": "Uzalishaji, matumizi, biashara, mlo na makadirio ya chakula cha Afrika, kila takwimu na chanzo chake."
+  }
+}

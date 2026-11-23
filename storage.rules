@@ -1,0 +1,10 @@
+rules_version = '2';
+
+// M0: default deny. Briefs (M5) are written by functions and served through signed URLs.
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

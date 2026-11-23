@@ -1,0 +1,143 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Tokens. Single light theme, as on the legacy platform (deliberate: printed briefs and screens match).
+ * Section colour: the shell sets data-section on <html>; --sec follows it.
+ */
+:root {
+  color-scheme: light;
+  --page: #fbf3e6; /* millet cream */
+  --surface: #fffdf9;
+  --ink: #2a1a10;
+  --muted: #5b4636;
+  --line: #e7d3b4;
+  --clay: #b5542b;
+  --ochre: #d99a2b;
+  --sisal: #e9d3a3;
+  --leaf: #3c7a3b;
+  --earth: #3a2416;
+  --paprika: #c22e16;
+  --focus: #1d3f7a;
+
+  --font-display: 'Fraunces Variable', 'Iowan Old Style', Georgia, serif;
+  --font-body: 'Figtree Variable', 'Segoe UI', system-ui, sans-serif;
+
+  --sec: var(--clay);
+  /* Section colour darkened toward earth so text in it passes 4.5:1 on the cream page. */
+  --sec-ink: color-mix(in srgb, var(--sec) 70%, var(--earth));
+  --sec-tint: color-mix(in srgb, var(--sec) 9%, var(--page));
+}
+[data-section='countries'] { --sec: #c8321b; }
+[data-section='analytics'] { --sec: #b07a00; }
+[data-section='cost'] { --sec: #8a5a26; }
+[data-section='directory'] { --sec: #17707f; }
+[data-section='policy'] { --sec: #2e7d32; }
+[data-section='data'] { --sec: #7a3b1d; }
+[data-section='about'] { --sec: #b3261e; }
+
+html[dir='rtl'] {
+  --font-body: 'Noto Naskh Arabic', 'Figtree Variable', 'Segoe UI', Tahoma, sans-serif;
+  --font-display: 'Noto Naskh Arabic', 'Fraunces Variable', Georgia, serif;
+}
+
+@layer base {
+  html {
+    background: var(--page);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 100%;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    margin: 0;
+    background: var(--page);
+    line-height: 1.55;
+    min-height: 100dvh;
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    text-wrap: balance;
+    font-variation-settings: 'SOFT' 100;
+  }
+  a {
+    color: var(--sec-ink);
+    text-underline-offset: 2px;
+  }
+  :focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  .wrap {
+    max-width: 1180px;
+    margin-inline: auto;
+    padding-inline: max(16px, env(safe-area-inset-left, 0px));
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-block-start: 3px solid color-mix(in srgb, var(--sec) 60%, var(--sisal));
+    border-radius: 14px;
+    padding: 16px 18px;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 40px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink);
+    font: 600 14px/1.2 var(--font-body);
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .btn:hover {
+    border-color: var(--sec);
+  }
+  .btn-primary {
+    background: var(--paprika);
+    border-color: var(--paprika);
+    color: #fff;
+  }
+  .btn-primary:hover {
+    background: #8f1f0d;
+  }
+  .sr-only-focusable:not(:focus):not(:focus-within) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+}
+
+@media print {
+  .decor,
+  .no-print {
+    display: none !important;
+  }
+  html,
+  body {
+    background: #fff !important;
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "name": "@afb/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:emulators": "vite --mode emulators",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --port 4173",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "e2e": "playwright test"
+  },
+  "dependencies": {
+    "@afb/schema": "workspace:*",
+    "@afb/ui": "workspace:*",
+    "@fontsource-variable/figtree": "^5.1.1",
+    "@fontsource-variable/fraunces": "^5.1.0",
+    "@fontsource/noto-naskh-arabic": "^5.1.0",
+    "@tanstack/react-query": "^5.60.5",
+    "firebase": "^13.0.0",
+    "i18next": "^23.16.5",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-i18next": "^15.1.1",
+    "react-router-dom": "^6.28.0"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.10.1",
+    "@playwright/test": "^1.48.2",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.0.1",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.3",
+    "autoprefixer": "^10.4.20",
+    "jsdom": "^25.0.1",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.15",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11",
+    "vite-plugin-pwa": "^0.21.0",
+    "vitest": "^2.1.5",
+    "workbox-window": "^7.3.0"
+  }
+}

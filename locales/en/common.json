@@ -1,0 +1,123 @@
+{
+  "brand": {
+    "name": "Africa Food Basket",
+    "by": "by Cottid Africa",
+    "home": "Africa Food Basket, home"
+  },
+  "a11y": {
+    "skip": "Skip to main content",
+    "menu": "Menu",
+    "closeMenu": "Close menu",
+    "sections": "Platform sections",
+    "pages": "Pages in this section",
+    "language": "Language"
+  },
+  "section": {
+    "home": "Home",
+    "countries": "Countries",
+    "analytics": "Analytics",
+    "cost": "Cost of Imports",
+    "directory": "Directory",
+    "policy": "Policy and development",
+    "data": "Data",
+    "about": "About",
+    "account": "Account",
+    "org": "Organisation",
+    "contribute": "Contribute",
+    "admin": "Admin"
+  },
+  "page": {
+    "countries": "All countries",
+    "country": "Country profile",
+    "diet": "Diet",
+    "trade": "Food trade",
+    "compare": "Compare",
+    "planner": "Planner",
+    "projections": "Projections",
+    "review": "Forecast review",
+    "advisory": "Advisory",
+    "briefs": "Briefs",
+    "matrix": "Cost matrix",
+    "calculator": "Calculator",
+    "origins": "Origins",
+    "markets": "Markets",
+    "buyers": "Buyers",
+    "sellers": "Sellers",
+    "compliance": "Compliance",
+    "events": "Events",
+    "agreements": "Agreements",
+    "interventions": "Interventions",
+    "funders": "Funders",
+    "calls": "Calls for proposals",
+    "explorer": "Data explorer",
+    "apis": "APIs",
+    "sources": "Sources",
+    "about": "About the platform",
+    "methods": "Methods",
+    "terms": "Terms",
+    "signin": "Sign in",
+    "signup": "Create an account",
+    "reset": "Reset your password",
+    "account": "Your account",
+    "saved": "Saved views",
+    "alerts": "Alerts",
+    "apiKeys": "API keys",
+    "notifications": "Notifications",
+    "org": "Organisation",
+    "members": "Members",
+    "settings": "Settings",
+    "contribute": "Suggest a correction or a new record",
+    "adminHome": "Admin dashboard",
+    "adminReview": "Review queue",
+    "adminDirectory": "Directory records",
+    "adminContent": "Content",
+    "adminPrices": "Prices",
+    "adminDuties": "Duties",
+    "adminSources": "Sources",
+    "adminDatasets": "Datasets",
+    "adminIngest": "Ingest runs",
+    "adminUsers": "Users",
+    "adminOrganisations": "Organisations",
+    "adminAudit": "Audit log",
+    "adminSettings": "Platform settings"
+  },
+  "home": {
+    "h1": "<em>Africa's</em> food basket: grown, traded, imported",
+    "kicker": "Africa Food Basket",
+    "tasks": "Start with a task",
+    "task": {
+      "countries": "See what a country grows, eats, imports and exports.",
+      "analytics": "Plan production, read projections and get advice.",
+      "cost": "Find the cheapest origin for a market, landed.",
+      "directory": "Find buyers, sellers, rules and events.",
+      "policy": "Track agreements, interventions, funders and open calls.",
+      "data": "Explore, download or query every series and its source."
+    }
+  },
+  "status": {
+    "building": "This page is being rebuilt from the current platform. Its figures will appear here once they match the current platform exactly.",
+    "dataNotAvailable": "Data not available",
+    "loading": "Loading…",
+    "offline": "You are offline. Pages you have opened before still work; new data will load when you reconnect.",
+    "backOnline": "You are back online."
+  },
+  "system": {
+    "notFoundTitle": "Page not found",
+    "notFoundBody": "We could not find that page. It may have moved, or the address may be wrong.",
+    "offlineTitle": "You are offline",
+    "offlineBody": "This page needs a connection the first time you open it. Reconnect and try again.",
+    "maintenanceTitle": "Down for maintenance",
+    "maintenanceBody": "We are updating the platform. Please come back shortly.",
+    "goHome": "Go to the home page",
+    "retry": "Try again"
+  },
+  "action": {
+    "suggest": "Suggest a correction",
+    "signIn": "Sign in",
+    "install": "Install app"
+  },
+  "footer": {
+    "rights": "© {{year}} Cottid Africa. All rights reserved.",
+    "tagline": "Production, consumption, trade, diets and projections for African food, every figure sourced."
+  }
+}

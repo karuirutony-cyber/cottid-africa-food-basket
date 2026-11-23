@@ -1,0 +1,123 @@
+{
+  "brand": {
+    "name": "Africa Food Basket",
+    "by": "da Cottid Africa",
+    "home": "Africa Food Basket, início"
+  },
+  "a11y": {
+    "skip": "Saltar para o conteúdo principal",
+    "menu": "Menu",
+    "closeMenu": "Fechar menu",
+    "sections": "Secções da plataforma",
+    "pages": "Páginas desta secção",
+    "language": "Idioma"
+  },
+  "section": {
+    "home": "Início",
+    "countries": "Países",
+    "analytics": "Análises",
+    "cost": "Custo das importações",
+    "directory": "Diretório",
+    "policy": "Políticas e desenvolvimento",
+    "data": "Dados",
+    "about": "Sobre",
+    "account": "Conta",
+    "org": "Organização",
+    "contribute": "Contribuir",
+    "admin": "Administração"
+  },
+  "page": {
+    "countries": "Todos os países",
+    "country": "Perfil do país",
+    "diet": "Dieta",
+    "trade": "Comércio alimentar",
+    "compare": "Comparar",
+    "planner": "Planeador",
+    "projections": "Projeções",
+    "review": "Revisão das previsões",
+    "advisory": "Aconselhamento",
+    "briefs": "Notas informativas",
+    "matrix": "Matriz de custos",
+    "calculator": "Calculadora",
+    "origins": "Origens",
+    "markets": "Mercados",
+    "buyers": "Compradores",
+    "sellers": "Vendedores",
+    "compliance": "Conformidade",
+    "events": "Eventos",
+    "agreements": "Acordos",
+    "interventions": "Intervenções",
+    "funders": "Financiadores",
+    "calls": "Convites à apresentação de propostas",
+    "explorer": "Explorador de dados",
+    "apis": "APIs",
+    "sources": "Fontes",
+    "about": "Sobre a plataforma",
+    "methods": "Métodos",
+    "terms": "Termos",
+    "signin": "Iniciar sessão",
+    "signup": "Criar uma conta",
+    "reset": "Redefinir a palavra-passe",
+    "account": "A sua conta",
+    "saved": "Vistas guardadas",
+    "alerts": "Alertas",
+    "apiKeys": "Chaves de API",
+    "notifications": "Notificações",
+    "org": "Organização",
+    "members": "Membros",
+    "settings": "Definições",
+    "contribute": "Sugerir uma correção ou um novo registo",
+    "adminHome": "Painel de administração",
+    "adminReview": "Fila de revisão",
+    "adminDirectory": "Registos do diretório",
+    "adminContent": "Conteúdo",
+    "adminPrices": "Preços",
+    "adminDuties": "Direitos aduaneiros",
+    "adminSources": "Fontes",
+    "adminDatasets": "Conjuntos de dados",
+    "adminIngest": "Recolhas de dados",
+    "adminUsers": "Utilizadores",
+    "adminOrganisations": "Organizações",
+    "adminAudit": "Registo de auditoria",
+    "adminSettings": "Definições da plataforma"
+  },
+  "home": {
+    "h1": "A <em>cesta alimentar</em> de África: cultivada, comercializada, importada",
+    "kicker": "Africa Food Basket",
+    "tasks": "Comece por uma tarefa",
+    "task": {
+      "countries": "Veja o que um país cultiva, come, importa e exporta.",
+      "analytics": "Planeie a produção, leia as projeções e obtenha aconselhamento.",
+      "cost": "Encontre a origem mais barata para um mercado, no destino.",
+      "directory": "Encontre compradores, vendedores, regras e eventos.",
+      "policy": "Acompanhe acordos, intervenções, financiadores e convites abertos.",
+      "data": "Explore, descarregue ou consulte cada série e a sua fonte."
+    }
+  },
+  "status": {
+    "building": "Esta página está a ser reconstruída a partir da plataforma atual. Os seus valores aparecerão aqui quando coincidirem exatamente com os da plataforma atual.",
+    "dataNotAvailable": "Dados não disponíveis",
+    "loading": "A carregar…",
+    "offline": "Está offline. As páginas que já abriu continuam a funcionar; os novos dados serão carregados quando voltar a ligar-se.",
+    "backOnline": "Está novamente online."
+  },
+  "system": {
+    "notFoundTitle": "Página não encontrada",
+    "notFoundBody": "Não encontrámos esta página. Pode ter sido movida, ou o endereço pode estar errado.",
+    "offlineTitle": "Está offline",
+    "offlineBody": "Esta página precisa de ligação na primeira vez que a abre. Volte a ligar-se e tente novamente.",
+    "maintenanceTitle": "Em manutenção",
+    "maintenanceBody": "Estamos a atualizar a plataforma. Volte dentro de momentos.",
+    "goHome": "Ir para o início",
+    "retry": "Tentar novamente"
+  },
+  "action": {
+    "suggest": "Sugerir uma correção",
+    "signIn": "Iniciar sessão",
+    "install": "Instalar a aplicação"
+  },
+  "footer": {
+    "rights": "© {{year}} Cottid Africa. Todos os direitos reservados.",
+    "tagline": "Produção, consumo, comércio, dietas e projeções para os alimentos de África, cada valor com a sua fonte."
+  }
+}

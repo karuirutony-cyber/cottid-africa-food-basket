@@ -1,0 +1,123 @@
+{
+  "brand": {
+    "name": "Africa Food Basket",
+    "by": "par Cottid Africa",
+    "home": "Africa Food Basket, accueil"
+  },
+  "a11y": {
+    "skip": "Aller au contenu principal",
+    "menu": "Menu",
+    "closeMenu": "Fermer le menu",
+    "sections": "Sections de la plateforme",
+    "pages": "Pages de cette section",
+    "language": "Langue"
+  },
+  "section": {
+    "home": "Accueil",
+    "countries": "Pays",
+    "analytics": "Analyses",
+    "cost": "Coût des importations",
+    "directory": "Annuaire",
+    "policy": "Politiques et développement",
+    "data": "Données",
+    "about": "À propos",
+    "account": "Compte",
+    "org": "Organisation",
+    "contribute": "Contribuer",
+    "admin": "Administration"
+  },
+  "page": {
+    "countries": "Tous les pays",
+    "country": "Profil du pays",
+    "diet": "Alimentation",
+    "trade": "Commerce alimentaire",
+    "compare": "Comparer",
+    "planner": "Planificateur",
+    "projections": "Projections",
+    "review": "Bilan des prévisions",
+    "advisory": "Conseils",
+    "briefs": "Notes de synthèse",
+    "matrix": "Matrice des coûts",
+    "calculator": "Calculateur",
+    "origins": "Origines",
+    "markets": "Marchés",
+    "buyers": "Acheteurs",
+    "sellers": "Vendeurs",
+    "compliance": "Conformité",
+    "events": "Événements",
+    "agreements": "Accords",
+    "interventions": "Interventions",
+    "funders": "Bailleurs de fonds",
+    "calls": "Appels à propositions",
+    "explorer": "Explorateur de données",
+    "apis": "API",
+    "sources": "Sources",
+    "about": "À propos de la plateforme",
+    "methods": "Méthodes",
+    "terms": "Conditions",
+    "signin": "Se connecter",
+    "signup": "Créer un compte",
+    "reset": "Réinitialiser votre mot de passe",
+    "account": "Votre compte",
+    "saved": "Vues enregistrées",
+    "alerts": "Alertes",
+    "apiKeys": "Clés d'API",
+    "notifications": "Notifications",
+    "org": "Organisation",
+    "members": "Membres",
+    "settings": "Paramètres",
+    "contribute": "Proposer une correction ou un nouvel enregistrement",
+    "adminHome": "Tableau de bord d'administration",
+    "adminReview": "File de revue",
+    "adminDirectory": "Fiches de l'annuaire",
+    "adminContent": "Contenu",
+    "adminPrices": "Prix",
+    "adminDuties": "Droits de douane",
+    "adminSources": "Sources",
+    "adminDatasets": "Jeux de données",
+    "adminIngest": "Collectes de données",
+    "adminUsers": "Utilisateurs",
+    "adminOrganisations": "Organisations",
+    "adminAudit": "Journal d'audit",
+    "adminSettings": "Paramètres de la plateforme"
+  },
+  "home": {
+    "h1": "Le <em>panier alimentaire</em> de l'Afrique : cultivé, échangé, importé",
+    "kicker": "Africa Food Basket",
+    "tasks": "Commencer par une tâche",
+    "task": {
+      "countries": "Voir ce qu'un pays cultive, consomme, importe et exporte.",
+      "analytics": "Planifier la production, lire les projections et obtenir des conseils.",
+      "cost": "Trouver l'origine la moins chère pour un marché, rendu à destination.",
+      "directory": "Trouver des acheteurs, des vendeurs, des règles et des événements.",
+      "policy": "Suivre les accords, les interventions, les bailleurs et les appels ouverts.",
+      "data": "Explorer, télécharger ou interroger chaque série et sa source."
+    }
+  },
+  "status": {
+    "building": "Cette page est en cours de reconstruction à partir de la plateforme actuelle. Ses chiffres apparaîtront ici dès qu'ils correspondront exactement à ceux de la plateforme actuelle.",
+    "dataNotAvailable": "Données non disponibles",
+    "loading": "Chargement…",
+    "offline": "Vous êtes hors ligne. Les pages déjà ouvertes fonctionnent toujours ; les nouvelles données se chargeront à la reconnexion.",
+    "backOnline": "Vous êtes de nouveau en ligne."
+  },
+  "system": {
+    "notFoundTitle": "Page introuvable",
+    "notFoundBody": "Nous n'avons pas trouvé cette page. Elle a peut-être été déplacée, ou l'adresse est erronée.",
+    "offlineTitle": "Vous êtes hors ligne",
+    "offlineBody": "Cette page nécessite une connexion la première fois que vous l'ouvrez. Reconnectez-vous et réessayez.",
+    "maintenanceTitle": "Maintenance en cours",
+    "maintenanceBody": "Nous mettons la plateforme à jour. Revenez dans quelques instants.",
+    "goHome": "Aller à l'accueil",
+    "retry": "Réessayer"
+  },
+  "action": {
+    "suggest": "Proposer une correction",
+    "signIn": "Se connecter",
+    "install": "Installer l'application"
+  },
+  "footer": {
+    "rights": "© {{year}} Cottid Africa. Tous droits réservés.",
+    "tagline": "Production, consommation, commerce, alimentation et projections pour l'alimentation africaine, chaque chiffre sourcé."
+  }
+}

@@ -1,0 +1,6 @@
+legacy/
+locales/*/legacy.json
+locales/*/names.json
+pnpm-lock.yaml
+dist/
+lib/

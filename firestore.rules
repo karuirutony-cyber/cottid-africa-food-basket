@@ -1,0 +1,11 @@
+rules_version = '2';
+
+// M0: default deny everywhere. M1 replaces this with the full role model
+// (public reference reads, own profile, submissions, staff writes) and a test per rule.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
