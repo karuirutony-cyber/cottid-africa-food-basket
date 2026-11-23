@@ -117,6 +117,22 @@ test('an alert fires: notification shown and e-mail queued', async ({ page }, in
   await expect(page.getByRole('link', { name: /Call closes 2026-12-01: Home-Grown Solutions/ })).toBeVisible({ timeout: 30_000 });
   expect((await mailFor(uid)).some((s) => s.includes('Call closes 2026-12-01'))).toBe(true);
 
+  // Maintenance mode: visitors see the maintenance page; staff keep working with a banner.
+  await page.goto('/admin/settings');
+  await page.getByRole('checkbox', { name: 'maintenance mode' }).check();
+  await page.getByRole('button', { name: 'Save settings' }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'Settings saved' })).toBeVisible({ timeout: 60_000 });
+  const visitor = await page.context().browser()!.newPage();
+  await visitor.goto('http://localhost:4174/countries');
+  await expect(visitor.getByRole('heading', { level: 1, name: 'Down for maintenance' })).toBeVisible({ timeout: 20_000 });
+  await visitor.close();
+  await page.goto('/countries');
+  await expect(page.getByText('Maintenance mode is on')).toBeVisible({ timeout: 20_000 });
+  await page.goto('/admin/settings');
+  await page.getByRole('checkbox', { name: 'maintenance mode' }).uncheck();
+  await page.getByRole('button', { name: 'Save settings' }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'Settings saved' })).toBeVisible({ timeout: 60_000 });
+
   // Running again does not repeat the same notification.
   await page.goto('/admin/settings');
   await page.getByRole('button', { name: 'Run alerts now' }).click();

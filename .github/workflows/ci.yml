@@ -3,14 +3,23 @@ name: CI
 on:
   push:
   pull_request:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Where to deploy: "preview" (channel next) or "live" (the real site, functions, rules)'
+        required: true
+        default: preview
+        type: choice
+        options: [preview, live]
 
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.ref }}-${{ github.event_name }}
   cancel-in-progress: true
 
 jobs:
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -24,17 +33,19 @@ jobs:
       - run: pnpm check:locales
       - run: pnpm test
       - run: pnpm build
+      - name: Performance budget (initial JavaScript under 250 KB gzipped)
+        run: pnpm check:budget
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
       - name: Security rules tests (Firestore emulator)
         run: pnpm test:rules
-      - name: Playwright journeys (1280 px and 400 px, axe, parity)
+      - name: Playwright journeys (1280 px and 400 px, axe, parity, 4G LCP, under the CSP)
         run: |
           pnpm --filter @afb/web exec playwright install --with-deps chromium
           pnpm --filter @afb/web e2e
-      - name: Account journeys (Auth, Firestore and Functions emulators)
+      - name: Account, contribution, API, dataset and alert journeys (emulators)
         run: pnpm e2e:auth
       - name: Seed an empty database and check every collection
         run: pnpm exec firebase emulators:exec --only firestore --project demo-cottid "pnpm seed:emulator && pnpm seed:emulator && pnpm exec tsx tools/count-emulator.ts"
@@ -48,10 +59,10 @@ jobs:
           name: web-dist
           path: apps/web/dist
 
-  deploy:
-    # Until parity (M4), main deploys to the Hosting preview channel "next", never over the live site.
+  # Every push to main (and a manual "preview" run) publishes to the Hosting preview channel "next".
+  deploy-preview:
     needs: check
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || (github.event_name == 'workflow_dispatch' && inputs.target == 'preview')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -66,3 +77,25 @@ jobs:
           projectId: cottid-72d51
           channelId: next
           expires: 30d
+
+  # The live site, functions, rules and indexes: only when someone runs the workflow by hand with
+  # target "live", and only after the "production" environment's reviewers approve (set them in GitHub).
+  deploy-live:
+    needs: check
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'live' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_COTTID_72D51 }}
+      - name: Deploy hosting, functions, Firestore rules and indexes, Storage rules
+        run: pnpm exec firebase deploy --project cottid-72d51 --only hosting,functions,firestore,storage --non-interactive --force

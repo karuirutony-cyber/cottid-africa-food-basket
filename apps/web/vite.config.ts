@@ -1,14 +1,33 @@
 /// <reference types="vitest" />
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import { fileURLToPath, URL } from 'node:url';
+import securityHeaders from '../../security-headers.json';
 
 const repoRoot = fileURLToPath(new URL('../..', import.meta.url));
+
+/** Preload the two Latin font files the home heading uses, so the largest paint is not held up. */
+function preloadFonts(): Plugin {
+  return {
+    name: 'afb-preload-fonts',
+    apply: 'build',
+    transformIndexHtml(html, ctx) {
+      const files = Object.keys(ctx.bundle ?? {}).filter((f) => /(fraunces-latin-full-normal|figtree-latin-wght-normal)-[\w-]+\.woff2$/.test(f));
+      return {
+        html,
+        tags: files.map((f) => ({ tag: 'link', injectTo: 'head', attrs: { rel: 'preload', href: `/${f}`, as: 'font', type: 'font/woff2', crossorigin: '' } })),
+      };
+    },
+  };
+}
 
 export default defineConfig({
   plugins: [
     react(),
+    // Measured: preloading fonts competes with the scripts on slow 4G and made LCP worse (2.9 s vs 2.2 s).
+    // Kept available but off; the text renders in the fallback font first (font-display: swap).
+    ...(process.env.AFB_PRELOAD_FONTS === '1' ? [preloadFonts()] : []),
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: false, // registered from src/lib/pwa.ts so it never blocks first paint
@@ -70,6 +89,18 @@ export default defineConfig({
     },
   },
   server: { port: 5173, fs: { allow: [repoRoot] } },
+  // The production build is previewed (and tested end to end) under the same security headers Hosting
+  // sends, so a Content Security Policy violation fails the journeys before it reaches users.
+  // The emulator journeys run under the same policy, with the local emulator origins allowed.
+  preview: {
+    headers:
+      process.env.AFB_EMULATOR_PREVIEW === '1'
+        ? {
+            ...securityHeaders,
+            'Content-Security-Policy': securityHeaders['Content-Security-Policy'].replace('connect-src ', 'connect-src http://127.0.0.1:* http://localhost:* ws://127.0.0.1:* '),
+          }
+        : securityHeaders,
+  },
   build: {
     target: 'es2020',
     sourcemap: true,

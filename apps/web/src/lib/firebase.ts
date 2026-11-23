@@ -45,6 +45,13 @@ export function getFirebase(): Promise<FirebaseHandles> {
       import('firebase/functions'),
     ]);
     const app = initializeApp(firebaseConfig);
+    // App Check (reCAPTCHA Enterprise): on when a site key is configured; never against the emulators.
+    const siteKey = env.VITE_RECAPTCHA_ENTERPRISE_SITE_KEY;
+    if (siteKey && !useEmulators) {
+      if (env.VITE_APPCHECK_DEBUG_TOKEN) (self as unknown as { FIREBASE_APPCHECK_DEBUG_TOKEN: string }).FIREBASE_APPCHECK_DEBUG_TOKEN = env.VITE_APPCHECK_DEBUG_TOKEN;
+      const { initializeAppCheck, ReCaptchaEnterpriseProvider } = await import('firebase/app-check');
+      initializeAppCheck(app, { provider: new ReCaptchaEnterpriseProvider(siteKey), isTokenAutoRefreshEnabled: true });
+    }
     const auth = authMod.initializeAuth(app, {
       persistence: [authMod.indexedDBLocalPersistence, authMod.browserLocalPersistence],
       popupRedirectResolver: authMod.browserPopupRedirectResolver,

@@ -160,12 +160,6 @@ importers:
         specifier: ^3.23.8
         version: 3.25.76
     devDependencies:
-      '@afb/engines':
-        specifier: workspace:*
-        version: link:../packages/engines
-      '@afb/schema':
-        specifier: workspace:*
-        version: link:../packages/schema
       esbuild:
         specifier: ^0.24.0
         version: 0.24.2

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Trans, useTranslation } from 'react-i18next';
 import { HeritageMosaic, KiondoBand, sectionColour } from '@afb/ui';
-import { pc, usd } from '@afb/engines';
+import { pc, usd } from '@afb/engines/format';
 import { SECTIONS } from '@/sections';
 import { useDataset } from '@/data/datasets';
 import { AfricaMap, MEASURES, type Measure } from '@/components/AfricaMap';

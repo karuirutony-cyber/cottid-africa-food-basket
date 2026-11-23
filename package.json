@@ -22,6 +22,7 @@
     "seed:emulator": "tsx tools/seed.ts --project demo-cottid --emulator",
     "make-admin": "tsx tools/make-admin.ts",
     "check:locales": "tsx tools/check-locales.ts",
+    "check:budget": "tsx tools/check-budget.ts",
     "extract": "tsx tools/extract.ts legacy/platform_v33.html",
     "build:data": "tsx tools/build-data.ts",
     "data": "pnpm extract && pnpm build:data",
@@ -29,8 +30,8 @@
     "i18n:migrate": "tsx tools/migrate-i18n.ts legacy/platform_v33.html",
     "format": "prettier --write .",
     "deploy": "pnpm build && firebase hosting:channel:deploy next --expires 30d",
-    "deploy:live": "pnpm build && firebase deploy --only hosting,firestore,storage",
-    "verify": "pnpm lint && pnpm typecheck && pnpm check:locales && pnpm test && pnpm build"
+    "deploy:live": "pnpm build && firebase deploy --only hosting,functions,firestore,storage",
+    "verify": "pnpm lint && pnpm typecheck && pnpm check:locales && pnpm test && pnpm build && pnpm check:budget"
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",

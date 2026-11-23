@@ -18,3 +18,9 @@ interface ImportMeta {
 interface ImportMetaEnv {
   readonly VITE_TEST_NO_MFA?: string;
 }
+interface ImportMetaEnv {
+  /** reCAPTCHA Enterprise site key for App Check (Firebase console, App Check). Unset: App Check off. */
+  readonly VITE_RECAPTCHA_ENTERPRISE_SITE_KEY?: string;
+  /** Local testing against the real project with App Check enforced (register the token in the console). */
+  readonly VITE_APPCHECK_DEBUG_TOKEN?: string;
+}

@@ -1,5 +1,22 @@
 {
   "extends": "../tsconfig.base.json",
-  "compilerOptions": { "noEmit": true, "types": ["node"] },
-  "include": ["src", "../tools/seed-lib.ts"]
+  "compilerOptions": {
+    "noEmit": true,
+    "types": [
+      "node"
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "@afb/schema": [
+        "../packages/schema/src/index.ts"
+      ],
+      "@afb/engines": [
+        "../packages/engines/src/index.ts"
+      ]
+    }
+  },
+  "include": [
+    "src",
+    "../tools/seed-lib.ts"
+  ]
 }

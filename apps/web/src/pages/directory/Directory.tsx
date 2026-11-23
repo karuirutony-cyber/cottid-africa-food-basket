@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { ktf, usd, type Buyer, type ComplianceStep, type EventRec, type Supplier } from '@afb/engines';
+import { ktf, usd } from '@afb/engines/format';
+import type { Buyer, ComplianceStep, EventRec, Supplier } from '@afb/engines';
 import { useDatasets } from '@/data/datasets';
 import { overlay, usePublished } from '@/data/published';
 import { ExtLink, optionsOf, RecordTable } from '@/components/RecordTable';

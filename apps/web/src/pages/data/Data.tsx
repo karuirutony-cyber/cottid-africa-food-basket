@@ -101,7 +101,7 @@ export function Apis() {
           A read-only REST API over the same data, with a key and a daily quota per key (resets at 00:00 UTC). Every value keeps its source ID.{' '}
           <Link to="/account/api-keys">Create a key</Link> (free account), then send it in the <code>X-API-Key</code> header.
         </p>
-        <pre data-no-tr className="mt-3 overflow-x-auto rounded-lg bg-[#2a1a10] p-3 text-[13px] text-[#fbf3e6]">
+        <pre data-no-tr tabIndex={0} role="region" aria-label="Example request" className="mt-3 overflow-x-auto rounded-lg bg-[#2a1a10] p-3 text-[13px] text-[#fbf3e6]">
           {`curl -H "X-API-Key: afb_…" ${base}/api/v1/series/KE/rice`}
         </pre>
         <div tabIndex={0} role="region" aria-label="Scrollable table" className="scroll-x mt-3">

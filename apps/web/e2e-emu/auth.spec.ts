@@ -24,7 +24,19 @@ async function profile(uid: string) {
   const r = await fetch(`${FS}/users/${uid}`, { headers: owner });
   return r.ok ? ((await r.json()) as { fields: Record<string, { stringValue?: string }> }).fields : null;
 }
-async function setRole(uid: string, role: string) {
+/** Waits until syncRoleClaim has put the role on the account (the function may be cold-starting). */
+async function waitForClaim(uid: string, role: string) {
+  await expect
+    .poll(
+      async () => {
+        const r = await fetch(`${AUTH}/identitytoolkit.googleapis.com/v1/projects/${PROJECT}/accounts:lookup`, { method: 'POST', headers: owner, body: JSON.stringify({ localId: [uid] }) });
+        const u = ((await r.json()) as { users: { customAttributes?: string }[] }).users[0]!;
+        return u.customAttributes ? JSON.parse(u.customAttributes).role : null;
+      },
+      { timeout: 60_000, intervals: [1000] },
+    )
+    .toBe(role);
+}async function setRole(uid: string, role: string) {
   await fetch(`${FS}/users/${uid}?updateMask.fieldPaths=role`, {
     method: 'PATCH',
     headers: owner,
@@ -61,7 +73,7 @@ test('sign-up creates a member profile and sends a verification link', async ({ 
 
   await page.goto('/account');
   await expect(page.getByText(/is not verified yet/)).toBeVisible();
-  await fetch(link!.oobLink); // follow the link, as the user would from their inbox
+  await fetch(link!.oobLink, { redirect: 'manual' }); // open the link, as the user would from their inbox
   await page.reload();
   await expect(page.getByRole('heading', { level: 1, name: 'Your account' })).toBeVisible();
   await expect(page.getByText(/is not verified yet/)).toHaveCount(0, { timeout: 15_000 });
@@ -120,7 +132,7 @@ test('role gating: visitors sign in first, members are refused, staff need two-s
   // An administrator makes them a verifier; syncRoleClaim mirrors it into their token.
   const uid = await uidOf(email);
   await setRole(uid, 'verifier');
-  await page.waitForTimeout(3000);
+  await waitForClaim(uid, 'verifier');
   await page.goto('/account');
   await page.getByRole('button', { name: 'Sign out' }).click();
   await expect(page).toHaveURL(/\/signin/);

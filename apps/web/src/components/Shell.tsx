@@ -7,6 +7,7 @@ import { SubNav } from './SubNav';
 import { Footer } from './Footer';
 import { OfflineBanner } from './OfflineBanner';
 import { SuggestLink } from './SuggestLink';
+import { MaintenanceGate } from './MaintenanceGate';
 import { loadTranslator, noteEnglish, translateTree } from '@/lib/legacyI18n';
 
 export function Shell() {
@@ -73,7 +74,9 @@ export function Shell() {
       <SubNav />
       <main id="main" ref={mainRef} tabIndex={-1} className="flex-1 outline-none">
         <Suspense fallback={<p className="wrap py-10 text-muted">{t('status.loading')}</p>}>
-          <Outlet />
+          <MaintenanceGate>
+            <Outlet />
+          </MaintenanceGate>
         </Suspense>
       </main>
       {pathname !== '/contribute' && !pathname.startsWith('/admin') && (

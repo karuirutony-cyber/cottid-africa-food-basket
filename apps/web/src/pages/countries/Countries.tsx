@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { pc, usd } from '@afb/engines';
+import { pc, usd } from '@afb/engines/format';
 import { useDatasets } from '@/data/datasets';
 import { AfricaMap, MEASURES, type Measure } from '@/components/AfricaMap';
 import { Card, Csv, DataState, Page, SearchBox, Select, SourceFooter } from '@/components/ui';

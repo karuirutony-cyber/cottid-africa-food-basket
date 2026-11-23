@@ -67,15 +67,39 @@ Do these once, in the Firebase console for `cottid-72d51`:
 1. **Firestore**: create the database in **africa-south1** (production mode), if it does not exist yet. *(Needed from M1.)*
 2. **Authentication → Settings → Authorised domains**: add the Hosting domains (`cottid-72d51.web.app`, the `next` preview channel domain, and any custom domain). *(M2.)*
 3. **Authentication → Sign-in method**: enable Google and Email/Password. TOTP multi-factor needs **Identity Platform** (Authentication → Settings → upgrade), then enable it with `gcloud` or the REST call in the Firebase docs ("Add TOTP multi-factor authentication"). *(M2.)*
-4. **Blaze plan**: Cloud Functions (`ensureProfile`, `syncRoleClaim`, `bootstrap`) need the pay-as-you-go plan. Deploy them with `pnpm firebase deploy --only functions,firestore`. *(M1–M2.)*
-5. **App Check**: register the web app with reCAPTCHA Enterprise. *(M10.)*
-6. **Extensions**: install **Trigger Email**. *(M9.)*
-7. **Secret Manager**: store `COMTRADE_KEY`. *(M9.)*
+4. **Blaze plan**: Cloud Functions need the pay-as-you-go plan. *(M1.)*
+5. **Storage**: open Storage once so the default bucket exists; dataset snapshots are kept under `datasets/`. *(M9.)*
+6. **Extensions**: install **Trigger Email**, reading the `mail` collection, with your SMTP or SendGrid details. Until then alert and invitation e-mails wait in `mail`. *(M9.)*
+7. **App Check**: register the web app with **reCAPTCHA Enterprise**, put the site key in `VITE_RECAPTCHA_ENTERPRISE_SITE_KEY` (a GitHub Actions variable, or `apps/web/.env.production`), deploy, watch the App Check metrics until almost all requests carry tokens, then set `APPCHECK_ENFORCE=true` in `functions/.env.cottid-72d51` and enforce App Check for Firestore in the console. *(M10.)*
+8. **Secret Manager**: store `COMTRADE_KEY` when the Comtrade ingest is switched on. *(Later.)*
+
+### Deploying
+
+- **Preview** (safe at any time): `pnpm deploy` publishes the app to the Hosting channel `next`. Every push to `main` does the same from CI.
+- **Live** (replaces the current site, deploys functions, rules and indexes): `pnpm deploy:live`, or run the CI workflow by hand with target `live`. **Before the first live deploy**, note that the new security rules replace the old page's rules: the v34 page's own collections (`published_*`, `signups`) become unreadable. Seed first (`pnpm seed`), check the preview, then go live.
 
 ### Deploying from CI
 
-GitHub Actions runs lint, typecheck, locale check, unit tests, build and the Playwright journeys on every push. On `main` it then deploys to the Hosting preview channel `next` (not the live site, until the new app reaches parity with the legacy page). To enable it, add a repository secret `FIREBASE_SERVICE_ACCOUNT_COTTID_72D51` holding a service-account key JSON with the *Firebase Hosting Admin* role (`firebase init hosting:github` creates one for you).
+GitHub Actions (`.github/workflows/ci.yml`) runs, on every push: lint, typecheck, the locale check, unit and golden tests, the build, the performance budget, the security-rules tests, the public journeys (1280 px and 400 px, axe, parity with the legacy page, 4G LCP, all under the production Content Security Policy), the emulator journeys (accounts, contributions, API, datasets, alerts, maintenance) and the seed check.
 
+- On `main` it then deploys to the preview channel `next`.
+- The live deploy runs only when someone starts the workflow by hand with target `live`, and only after the reviewers of the GitHub environment **production** approve it (Settings → Environments → production → Required reviewers).
+- Secrets: `FIREBASE_SERVICE_ACCOUNT_COTTID_72D51`, a service-account key JSON with the roles *Firebase Admin* and *Cloud Functions Admin*, *Service Account User* (`firebase init hosting:github` creates one for Hosting; add the other roles in Google Cloud IAM).
+
+## Security and performance
+
+- **Headers** (`security-headers.json`, sent by Hosting and by `vite preview`, so every journey runs under them): a Content Security Policy with no inline or `eval` scripts, `frame-ancestors 'none'`, HSTS, `nosniff`, a strict referrer policy and a closed permissions policy. A unit test fails if `firebase.json` drifts from the file.
+- **Roles and two-step**: staff actions need the role and a second factor in the rules and again in every function; every staff write is in `auditLog`.
+- **Budgets**: initial JavaScript 130 KB gzipped (budget 250 KB, `pnpm check:budget`); home page LCP about 2.1–2.3 s on a throttled 4G phone (budget 2.5 s, `e2e/perf.spec.ts`). Firebase, charts, the map, admin and each section load only when needed.
+- **Maintenance mode**: `/admin/settings` switches the public site to the maintenance page; staff, sign-in and admin pages stay reachable.
+- **Error pages**: not found, offline (when a page has never been opened while connected), maintenance, and a general error page with a retry.
+
+## Adding a data source
+
+1. Add the source to `SRC` in the legacy page (or, once the legacy page is retired, to `data/legacy/SRC.json`) with an ID: `D` for datasets, `S` for quotes and notices, `A` for Cottid Africa estimates.
+2. For a new time series, add its key to the balance or macro data and map the key to its source in `seriesSource()` (`tools/seed-lib.ts`).
+3. For an automatic update, add a step to the ingest in `functions/src/datasets.ts` that reads the source, compares, and records differences in `ingestRuns`; publishing stays a data steward's decision.
+4. Run `pnpm data` (the checks must still pass), then build and publish a new dataset version at `/admin/datasets`.
 ## Datasets, ingest, alerts and organisations
 
 - **Dataset versions** (`/admin/datasets`, data stewards): *Build* snapshots the published `/data/*.json` to Cloud Storage (`datasets/{version}/`) and runs the section 1 checks; *Publish* writes the reference collections from a snapshot that passed every check and points `meta/dataset` at it; *Roll back* republishes the version that was live before. Every step is audited.

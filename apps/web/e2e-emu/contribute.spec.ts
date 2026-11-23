@@ -11,7 +11,19 @@ async function uidOf(email: string): Promise<string> {
   const r = await fetch(`${AUTH}/identitytoolkit.googleapis.com/v1/projects/${PROJECT}/accounts:lookup`, { method: 'POST', headers: owner, body: JSON.stringify({ email: [email] }) });
   return ((await r.json()) as { users: { localId: string }[] }).users[0]!.localId;
 }
-async function setRole(uid: string, role: string) {
+/** Waits until syncRoleClaim has put the role on the account (the function may be cold-starting). */
+async function waitForClaim(uid: string, role: string) {
+  await expect
+    .poll(
+      async () => {
+        const r = await fetch(`${AUTH}/identitytoolkit.googleapis.com/v1/projects/${PROJECT}/accounts:lookup`, { method: 'POST', headers: owner, body: JSON.stringify({ localId: [uid] }) });
+        const u = ((await r.json()) as { users: { customAttributes?: string }[] }).users[0]!;
+        return u.customAttributes ? JSON.parse(u.customAttributes).role : null;
+      },
+      { timeout: 60_000, intervals: [1000] },
+    )
+    .toBe(role);
+}async function setRole(uid: string, role: string) {
   await fetch(`${FS}/users/${uid}?updateMask.fieldPaths=role`, { method: 'PATCH', headers: owner, body: JSON.stringify({ fields: { role: { stringValue: role } } }) });
 }
 async function field(path: string, name: string) {
@@ -60,7 +72,7 @@ test('a suggestion is reviewed, published to the record and audited', async ({ p
 
   // 2. They are made a data steward (verifier rights included).
   await setRole(await uidOf(email), 'data_steward');
-  await page.waitForTimeout(3000);
+  await waitForClaim(await uidOf(email), 'data_steward');
   await page.goto('/account');
   await page.getByRole('button', { name: 'Sign out' }).click();
   await expect(page).toHaveURL(/\/signin/);

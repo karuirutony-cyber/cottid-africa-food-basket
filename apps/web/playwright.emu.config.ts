@@ -20,6 +20,7 @@ export default defineConfig({
     command: 'pnpm exec vite build --mode emulators --outDir dist-emu && pnpm exec vite preview --outDir dist-emu --port 4174',
     url: 'http://localhost:4174',
     reuseExistingServer: false,
+    env: { AFB_EMULATOR_PREVIEW: '1' },
     timeout: 180_000,
   },
 });

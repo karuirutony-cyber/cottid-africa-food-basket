@@ -4,7 +4,9 @@ import AxeBuilder from '@axe-core/playwright';
 const errors: string[] = [];
 test.beforeEach(({ page }) => {
   errors.length = 0;
-  page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
+  // The public journeys run against the real project config; its Firestore may not be seeded, so a
+  // failed read from firestore.googleapis.com is expected here (the emulator journeys cover Firestore).
+  page.on('console', (m) => m.type() === 'error' && !/firestore\.googleapis\.com/.test(m.location().url) && errors.push(m.text()));
   page.on('pageerror', (e) => errors.push(e.message));
 });
 test.afterEach(() => expect(errors, 'console errors').toEqual([]));
@@ -33,8 +35,15 @@ test('every section is reachable from the navigation', async ({ page, isMobile }
   await page.goto('/');
   const sections = ['Countries', 'Analytics', 'Cost of Imports', 'Directory', 'Policy and development', 'Data', 'About'];
   for (const name of sections) {
-    if (isMobile) await page.getByRole('button', { name: 'Menu' }).click();
-    await page.getByRole('banner').getByRole('link', { name, exact: true }).click();
+    const link = page.getByRole('banner').getByRole('link', { name, exact: true });
+    // On phones, open the menu (the previous navigation closes it once the new page has loaded).
+    if (isMobile) {
+      await expect(page.getByRole('button', { name: 'Menu', exact: true })).toBeVisible();
+      await page.getByRole('button', { name: 'Menu', exact: true }).click();
+    }
+    const href = await link.getAttribute('href');
+    await link.click();
+    await expect(page).toHaveURL(new RegExp(`${href!.replace(/[/]/g, '\\/')}$`));
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     await expectNoHorizontalScroll(page);
   }
@@ -71,7 +80,7 @@ for (const path of DATA_PAGES) {
 
 test('data pages are accessible', async ({ page }) => {
   test.setTimeout(90_000);
-  for (const path of ['/countries/KE', '/cost/calculator', '/directory/buyers', '/analytics/projections']) {
+  for (const path of ['/countries/KE', '/cost/calculator', '/directory/buyers', '/analytics/projections', '/signin', '/signup', '/reset', '/contribute', '/data/apis']) {
     await page.goto(path);
     await expect(page.locator('main .animate-pulse')).toHaveCount(0);
     // Let fonts and the last render settle so axe scans the finished page, not a frame mid-render.

@@ -1,0 +1,9 @@
+{
+  "Content-Security-Policy": "default-src 'self'; script-src 'self' https://apis.google.com https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com; font-src 'self' data:; connect-src 'self' https://*.googleapis.com https://*.cloudfunctions.net https://*.run.app https://www.google.com/recaptcha/ https://*.firebaseapp.com; frame-src https://cottid-72d51.firebaseapp.com https://www.google.com/recaptcha/ https://recaptcha.google.com/recaptcha/; worker-src 'self' blob:; manifest-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'",
+  "Cross-Origin-Opener-Policy": "same-origin-allow-popups",
+  "X-Content-Type-Options": "nosniff",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+  "X-Frame-Options": "DENY",
+  "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+  "Permissions-Policy": "camera=(), microphone=(), geolocation=(), browsing-topics=()"
+}

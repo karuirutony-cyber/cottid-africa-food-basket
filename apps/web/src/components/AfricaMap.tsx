@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import type { MapData } from '@afb/engines';
-import { pc, usd } from '@afb/engines';
+import { pc, usd } from '@afb/engines/format';
 import type { Summary } from '@/data/datasets';
 
 /*
