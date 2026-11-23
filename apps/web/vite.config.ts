@@ -37,10 +37,28 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
         // Precache only the scripts the five languages use; other font subsets load on demand.
-        globIgnores: ['**/*-{vietnamese,cyrillic,cyrillic-ext,greek,greek-ext,math}-*.woff2'],
+        globIgnores: [
+          '**/*-{vietnamese,cyrillic,cyrillic-ext,greek,greek-ext,math}-*.woff2',
+          // Per-language phrase dictionaries: cached when that language is first used, not on install.
+          '**/assets/legacy-*.js',
+          '**/assets/names-*.js',
+        ],
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//, /^\/__\//],
         cleanupOutdatedCaches: true,
+        // Reference data: served from cache at once, refreshed in the background (works offline once seen).
+        runtimeCaching: [
+          {
+            urlPattern: ({ url }) => url.pathname.startsWith('/data/'),
+            handler: 'StaleWhileRevalidate',
+            options: { cacheName: 'afb-data', expiration: { maxEntries: 60 } },
+          },
+          {
+            urlPattern: ({ url }) => /\/assets\/(legacy|names)-[\w-]+\.js$/.test(url.pathname),
+            handler: 'CacheFirst',
+            options: { cacheName: 'afb-i18n', expiration: { maxEntries: 20 } },
+          },
+        ],
       },
       devOptions: { enabled: false },
     }),

@@ -19,7 +19,7 @@ export function SubNav() {
               end
               className={({ isActive }) =>
                 `block rounded-full px-3 py-1.5 text-sm font-semibold no-underline ${
-                  isActive ? 'bg-sec text-white' : 'text-sec-ink hover:bg-sec-tint'
+                  isActive ? 'bg-sec-ink text-white' : 'text-sec-ink hover:bg-sec-tint'
                 }`
               }
             >

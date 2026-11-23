@@ -102,6 +102,8 @@
     "backOnline": "You are back online."
   },
   "system": {
+    "errorTitle": "Something went wrong",
+    "errorBody": "This page could not be shown. Try again; if it keeps happening, tell us with \"Suggest a correction\".",
     "notFoundTitle": "Page not found",
     "notFoundBody": "We could not find that page. It may have moved, or the address may be wrong.",
     "offlineTitle": "You are offline",

@@ -45,5 +45,10 @@ export function RouteError() {
   if (isRouteErrorResponse(error) && error.status === 404) return <NotFound />;
   if (typeof navigator !== 'undefined' && !navigator.onLine) return <Offline />;
   console.error(error);
-  return <Offline />;
+  return <ErrorPage />;
+}
+
+function ErrorPage() {
+  const { t } = useTranslation();
+  return <SystemMessage title={t('system.errorTitle')} body={t('system.errorBody')} retry />;
 }

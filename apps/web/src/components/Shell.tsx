@@ -6,6 +6,7 @@ import { TopBar } from './TopBar';
 import { SubNav } from './SubNav';
 import { Footer } from './Footer';
 import { OfflineBanner } from './OfflineBanner';
+import { loadTranslator, noteEnglish, translateTree } from '@/lib/legacyI18n';
 
 export function Shell() {
   const { t } = useTranslation();
@@ -20,6 +21,34 @@ export function Shell() {
     if (section) html.dataset.section = section.id;
     else delete html.dataset.section;
   }, [section]);
+
+  // Data pages are written in English from the figures; in other languages the legacy phrase
+  // dictionary translates them in place, as the legacy page did. React text updates are noted as new English.
+  const { i18n } = useTranslation();
+  useEffect(() => {
+    const main = mainRef.current;
+    if (!main) return;
+    const lang = i18n.language;
+    const pending = loadTranslator(lang);
+    let t: Awaited<NonNullable<typeof pending>> | null = null;
+    let raf = 0;
+    const obs = new MutationObserver((records) => {
+      for (const r of records) if (r.type === 'characterData') noteEnglish(r.target);
+      if (!raf) raf = requestAnimationFrame(run);
+    });
+    function run() {
+      raf = 0;
+      translateTree(main!, t);
+      obs.takeRecords(); // our own edits are not new English
+    }
+    obs.observe(main, { childList: true, subtree: true, characterData: true });
+    if (pending) void pending.then((x) => ((t = x), run()));
+    else run();
+    return () => {
+      obs.disconnect();
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [i18n.language]);
 
   // After client-side navigation, move focus to the main region so screen readers announce the new page.
   useEffect(() => {

@@ -13,6 +13,7 @@
     "e2e": "playwright test"
   },
   "dependencies": {
+    "@afb/engines": "workspace:^",
     "@afb/schema": "workspace:*",
     "@afb/ui": "workspace:*",
     "@fontsource-variable/figtree": "^5.1.1",

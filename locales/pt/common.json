@@ -102,6 +102,8 @@
     "backOnline": "Está novamente online."
   },
   "system": {
+    "errorTitle": "Ocorreu um problema",
+    "errorBody": "Não foi possível mostrar esta página. Tente novamente; se o problema persistir, informe-nos com «Sugerir uma correção».",
     "notFoundTitle": "Página não encontrada",
     "notFoundBody": "Não encontrámos esta página. Pode ter sido movida, ou o endereço pode estar errado.",
     "offlineTitle": "Está offline",

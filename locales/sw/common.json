@@ -102,6 +102,8 @@
     "backOnline": "Umerudi mtandaoni."
   },
   "system": {
+    "errorTitle": "Hitilafu imetokea",
+    "errorBody": "Ukurasa huu haukuweza kuonyeshwa. Jaribu tena; tatizo likiendelea, tujulishe kupitia \"Pendekeza marekebisho\".",
     "notFoundTitle": "Ukurasa haukupatikana",
     "notFoundBody": "Hatukuweza kupata ukurasa huo. Huenda umehamishwa, au anwani si sahihi.",
     "offlineTitle": "Uko nje ya mtandao",

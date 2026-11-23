@@ -42,6 +42,20 @@ Other commands:
 
 `pnpm firebase login` signs the Firebase CLI in (once per machine).
 
+## Data pipeline
+
+Every figure comes from `legacy/platform_v33.html` and keeps its source ID.
+
+| Command | What it does |
+| --- | --- |
+| `pnpm extract` | Parses every data constant (TS, LIB, REG, SRC, NUT, FT, SELL, CALLS, EVENTS, POL, DEVT, DEVF, PROG, ABOUT, MAP, APIS) into `data/legacy/*.json`, and the three engines verbatim into `packages/engines/src/legacy/` |
+| `pnpm build:data` | Checks the counts (54 countries, 34 foods in 9 groups, 275 sources, 161 buyers, 38 suppliers, 107 compliance entries, 35 events, Africa food imports 2024 US$77.6 bn, exports US$38.2 bn) and publishes the datasets to `apps/web/public/data/`. Fails, and publishes nothing, if any check fails |
+| `pnpm capture` | Runs the legacy page in headless Chromium to record the About, Methods and Terms text (`data/content/`) and golden engine outputs (`packages/engines/test/golden.json`) |
+
+`pnpm build` runs `extract` and `build:data` first. The web app reads the datasets from Hosting (`/data/*.json`), cached stale-while-revalidate by the service worker, so data pages work offline once opened. Seeding the same data into Firestore collections is the next milestone (M1).
+
+**Parity checks.** The engines are the legacy code itself, wrapped as modules; `packages/engines` golden tests require their outputs to match what the legacy page computes within 1e-6. The Playwright test `e2e/parity.spec.ts` opens the legacy page and the new app side by side and requires the Kenya, Nigeria, Egypt and Ethiopia summaries to read identically.
+
 ## Firebase
 
 Project `cottid-72d51`. The web config lives in `apps/web/src/lib/firebase.ts` and can be overridden with `VITE_FIREBASE_*` variables (see `apps/web/.env.example`). The SDK loads lazily, so it does not count toward the initial JavaScript budget. Google Analytics is never initialised: the Terms promise no tracking cookies.

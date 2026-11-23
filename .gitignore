@@ -19,3 +19,4 @@ data/legacy/
 .claude/
 # emulator exports
 .emulator-data/
+apps/web/public/data/

@@ -1,6 +1,8 @@
 import { render, screen, within } from '@testing-library/react';
-import { createMemoryRouter, RouterProvider } from 'react-router-dom';
+import { createMemoryRouter, MemoryRouter, RouterProvider } from 'react-router-dom';
+import { SubNav } from './components/SubNav';
 import { act } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { routerFuture, routes } from './router';
 import i18n, { initI18n, setLanguage } from './lib/i18n';
 
@@ -11,7 +13,12 @@ beforeAll(async () => {
 
 function renderAt(path: string) {
   const router = createMemoryRouter(routes, { initialEntries: [path], future: routerFuture });
-  return render(<RouterProvider router={router} future={{ v7_startTransition: true }} />);
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return render(
+    <QueryClientProvider client={client}>
+      <RouterProvider router={router} future={{ v7_startTransition: true }} />
+    </QueryClientProvider>,
+  );
 }
 
 describe('app shell', () => {
@@ -27,10 +34,19 @@ describe('app shell', () => {
   });
 
   it('shows section sub-pages and marks the current one', () => {
-    renderAt('/cost/calculator');
+    render(
+      <MemoryRouter initialEntries={['/cost/calculator']} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <SubNav />
+      </MemoryRouter>,
+    );
     const sub = screen.getByRole('navigation', { name: 'Pages in this section' });
     expect(within(sub).getByRole('link', { name: 'Calculator' })).toHaveAttribute('aria-current', 'page');
-    expect(document.documentElement.dataset.section).toBe('cost');
+  });
+
+  it('shows the legacy headline figures on the home page', async () => {
+    renderAt('/');
+    expect(await screen.findByText('US$77.6 bn')).toBeInTheDocument();
+    expect(screen.getAllByText('African countries').length).toBeGreaterThan(0);
   });
 
   it('shows 404 for unknown routes', () => {

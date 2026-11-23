@@ -31,6 +31,8 @@ export default tseslint.config(
     rules: {
       ...reactHooks.configs.recommended.rules,
       ...jsxA11y.flatConfigs.recommended.rules,
+      // Scrollable tables are focusable regions so keyboard users can scroll them (WCAG 2.1.1).
+      'jsx-a11y/no-noninteractive-tabindex': ['error', { roles: ['tabpanel', 'region'] }],
     },
   },
 );

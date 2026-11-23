@@ -11,7 +11,7 @@ test.afterEach(() => expect(errors, 'console errors').toEqual([]));
 
 async function expectAxeClean(page: Page) {
   const { violations } = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
-  expect(violations.map((v) => `${v.id}: ${v.nodes.length} × ${v.help}`)).toEqual([]);
+  expect(violations.map((v) => `${v.id}: ${v.nodes.length} × ${v.help} [${v.nodes.slice(0, 3).map((n) => n.target.join(' ')).join(' | ')}] ${page.url()}`)).toEqual([]);
 }
 
 async function expectNoHorizontalScroll(page: Page) {
@@ -45,9 +45,36 @@ test('Arabic switches the whole layout right to left', async ({ page }) => {
   await page.goto('/cost/calculator');
   await page.getByRole('combobox', { name: 'Language' }).selectOption('ar');
   await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('الحاسبة');
+  await expect(page.getByRole('navigation', { name: 'صفحات هذا القسم' }).getByRole('link', { name: 'الحاسبة' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   await expectNoHorizontalScroll(page);
   await expectAxeClean(page);
+});
+
+const DATA_PAGES = [
+  '/countries', '/countries/NG', '/countries/KE/diet', '/countries/EG/trade', '/compare',
+  '/analytics/planner', '/analytics/projections', '/analytics/review', '/analytics/advisory', '/analytics/briefs',
+  '/cost/matrix', '/cost/calculator', '/cost/origins', '/cost/markets',
+  '/directory/buyers', '/directory/sellers', '/directory/compliance', '/directory/events',
+  '/policy/agreements', '/policy/interventions', '/policy/funders', '/policy/calls',
+  '/data/explorer', '/data/apis', '/data/sources', '/about', '/about/methods', '/about/terms',
+];
+for (const path of DATA_PAGES) {
+  test(`data page renders with real data: ${path}`, async ({ page }) => {
+    await page.goto(path);
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    await expect(page.locator('main .animate-pulse')).toHaveCount(0);
+    await expect(page.getByText('Something went wrong')).toHaveCount(0);
+    await expectNoHorizontalScroll(page);
+  });
+}
+
+test('data pages are accessible', async ({ page }) => {
+  for (const path of ['/countries/KE', '/cost/calculator', '/directory/buyers', '/analytics/projections']) {
+    await page.goto(path);
+    await expect(page.locator('main .animate-pulse')).toHaveCount(0);
+    await expectAxeClean(page);
+  }
 });
 
 test('unknown pages show 404', async ({ page }) => {
@@ -56,6 +83,9 @@ test('unknown pages show 404', async ({ page }) => {
 });
 
 test('the shell works offline after the first visit', async ({ page, context }) => {
+  // Pages opened once while online keep working offline: the shell is precached, data is cached on use.
+  await page.goto('/directory/events');
+  await expect(page.locator('main table')).toBeVisible();
   await page.goto('/');
   await page.evaluate(async () => {
     await navigator.serviceWorker.ready;
@@ -64,9 +94,16 @@ test('the shell works offline after the first visit', async ({ page, context }) 
   await page.reload();
   await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller)).toBe(true);
 
+  // The page was fetched before the service worker took control, so open it once more under its control.
+  await page.goto('/directory/events');
+  await expect(page.locator('main table')).toBeVisible();
+
   await context.setOffline(true);
   await page.goto('/directory/events');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Events');
-  await expect(page.getByRole('status')).toContainText('You are offline');
+  await expect(page.locator('main table')).toBeVisible();
+  await expect(page.getByRole('status').filter({ hasText: 'You are offline' })).toBeVisible();
   await context.setOffline(false);
+  // Requests that fail while offline (fonts not yet cached) are expected here.
+  errors.splice(0, errors.length, ...errors.filter((e) => !/ERR_INTERNET_DISCONNECTED|ERR_FAILED/.test(e)));
 });

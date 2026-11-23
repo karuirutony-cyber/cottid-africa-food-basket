@@ -65,7 +65,9 @@ html[dir='rtl'] {
   }
   a {
     color: var(--sec-ink);
+    text-decoration: underline;
     text-underline-offset: 2px;
+    text-decoration-thickness: 1px;
   }
   :focus-visible {
     outline: 3px solid var(--focus);
@@ -120,6 +122,79 @@ html[dir='rtl'] {
   }
   .btn-primary:hover {
     background: #8f1f0d;
+  }
+  .tbl {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+    font-variant-numeric: tabular-nums;
+  }
+  .tbl th,
+  .tbl td {
+    padding: 6px 8px;
+    border-block-end: 1px solid #f0e3d0;
+    text-align: start;
+    vertical-align: top;
+  }
+  .tbl thead th {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--muted);
+    background: #fbf5ec;
+    position: sticky;
+    top: 0;
+  }
+  .tbl .n {
+    text-align: end;
+    white-space: nowrap;
+  }
+  .tbl tfoot td {
+    font-weight: 700;
+    border-block-start: 2px solid var(--line);
+  }
+  .tbl tr.grp th {
+    background: var(--sec-tint);
+    color: var(--sec-ink);
+    font-size: 12.5px;
+  }
+  .tbl tbody tr:hover td {
+    background: #fffaf3;
+  }
+  .scroll-x {
+    overflow-x: auto;
+    max-width: 100%;
+    /* keeps visually hidden (absolute) labels inside the scroller, not widening the page */
+    position: relative;
+  }
+  .card {
+    position: relative;
+  }
+  .prose-legacy h2 {
+    font-size: 22px;
+    color: var(--sec-ink);
+    margin: 18px 0 6px;
+  }
+  .prose-legacy h3 {
+    font-size: 16px;
+    margin: 14px 0 4px;
+    font-family: var(--font-body);
+  }
+  .prose-legacy p,
+  .prose-legacy li {
+    max-width: 78ch;
+  }
+  .prose-legacy .card {
+    margin-block: 12px;
+  }
+  .prose-legacy table {
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  .prose-legacy td,
+  .prose-legacy th {
+    padding: 5px 8px;
+    border-block-end: 1px solid #f0e3d0;
+    text-align: start;
   }
   .sr-only-focusable:not(:focus):not(:focus-within) {
     position: absolute;

@@ -1,0 +1,113 @@
+<div><h2>Methods</h2><p class="sub">How the figures on this platform are assembled, estimated and tested. Version 33 · 23 November 2026 · landed-cost library 18 November 2026 · statistical database built 2026-11-16.</p></div>
+    <div class="doc">
+      <div class="card"><h3>Units and conventions</h3>
+        <ul class="tight">
+          <li><b>kt, Mt:</b> thousand and million tonnes. Balances are on the basis stated for each food (milled rice, raw sugar, milk equivalent); customs trade is product weight.</li>
+          <li><b>US$ m, US$ bn:</b> million and billion US dollars, current prices.</li>
+          <li><b>Self-sufficiency ratio (SSR):</b> domestic production divided by consumption.</li>
+          <li><b>CAGR:</b> compound annual growth rate over the period shown.</li>
+          <li><b>FOB, CIF:</b> price at the port of loading; price at the port of entry, with freight and insurance.</li>
+          <li><b>Ad valorem duty, specific duty:</b> a percentage of customs value; a fixed amount per tonne.</li>
+          <li><b>Import parity:</b> what an imported tonne costs once delivered, used as the reference value for local supply.</li>
+          <li><b>Planning range:</b> the interval a projection is expected to fall in, from backtest error and yield variability.</li>
+        </ul></div>
+      <div class="card"><h3>1. Coverage</h3>
+        <ul class="tight">
+          <li><b>Foods:</b> 34 in 9 food groups. Cereals (rice, wheat, maize, barley and malt, sorghum, millet, wheat flour); Roots, tubers and plantains (cassava, yams, potatoes, sweet potatoes, plantains); Pulses, groundnuts and soybeans (pulses, groundnuts, soybeans); Sugar and edible oils (sugar, edible oils); Vegetables (tomatoes, onions, other vegetables); Fruits (bananas, citrus fruit, other fruits); Meat (beef, poultry meat, sheep and goat meat, pork, other meat and offal); Fish, milk and eggs (fish and seafood, milk and dairy, eggs); Coffee, tea and cocoa (coffee, tea, cocoa).</li>
+          <li><b>Two depths by food.</b> The ten traded staples (rice, wheat, maize, barley, sorghum, millet, sugar, edible oils, pulses, wheat flour) have landed cost, customs trade, import values and the directory registers. Every other food has FAOSTAT balances (production, consumption, import and export volumes to 2022), projections and plans, and shows quantities only.</li>
+          <li><b>Seven core markets</b> (Kenya, Uganda, Tanzania, Rwanda, Ethiopia, DR Congo, South Sudan): supply-and-use balances to market year 2026/27, customs trade to 2025, and landed costs built from national duty notices and route-specific cost estimates.</li>
+          <li><b>Standard depth</b> for the other African countries: balances published to 2022 with later years estimated by the model; landed cost for 45 markets from the most-favoured-nation duty in WITS/TRAINS and an indicative Africa-wide rate card. Djibouti and Eritrea have no tariff schedule in that source.</li>
+        </ul></div>
+      <div class="card"><h3>2. Data sources</h3>
+        <ul class="tight">
+          <li><b>Balances:</b> FAOSTAT Food Balances (2010 to 2022) for every food, and USDA Production, Supply and Distribution (market years 2024/25 to 2026/27) for the cereals and sugar it covers in the core markets.</li>
+          <li><b>Crops:</b> FAOSTAT production, area harvested and yield, to 2023. Animal products and the mixed groups (other vegetables, other fruits) have no area or yield series.</li>
+          <li><b>Trade:</b> UN Comtrade import and export quantity and value by HS code, 2020 to 2025, for the ten traded staples. For other foods, import and export volumes come from the FAOSTAT balance.</li>
+          <li><b>Economy and people:</b> World Bank World Development Indicators, IMF World Economic Outlook (October 2026), UN World Population Prospects (2024 revision, medium projection).</li>
+          <li><b>Prices:</b> World Bank Commodity Markets Outlook (October 2026), with forecasts to 2028.</li>
+          <li><b>Duties:</b> national and regional notices for the core markets; World Bank WITS and UNCTAD TRAINS elsewhere (schedules dated 2016 to 2023).</li>
+          <li><b>Climate:</b> ICPAC seasonal outlook and NOAA ENSO phases.</li>
+        </ul>
+        <p class="small">The full list, with links and the date each source was read, is on the <button class="lnk" data-go="sources">Sources</button> tab. IDs beginning with A are Cottid Africa estimates, rate cards or modelling assumptions.</p></div>
+      <div class="card"><h3>3. One best estimate per year</h3>
+        <p>Where sources overlap, each year takes one value and keeps the name of its source.</p>
+        <ul class="tight">
+          <li>FAOSTAT balances are used to 2022; USDA estimates are used where USDA publishes the commodity and market.</li>
+          <li>Reported customs trade replaces balance-sheet trade for the years it covers, unless the implied price per tonne is implausible against the world price. Those years are set aside as suspect.</li>
+          <li>Trade reported only by partner countries (mirror data) undercounts where suppliers do not report, so it never replaces a USDA estimate.</li>
+          <li>Crop production is converted to the balance basis (paddy to milled rice, cane to sugar, oil crops to oil).</li>
+          <li>Years between sources are interpolated and marked as such. Negative published supply figures are treated as unpublished.</li>
+          <li>Groups made of several FAOSTAT items (citrus fruit, other fruits, other meat and offal) are the sum of those items.</li>
+          <li>Final-year check: a 2022 consumption figure more than four times the highest of 2019 to 2021 is set aside as suspect (milk and dairy in DR Congo).</li>
+          <li>Tea: FAOSTAT records production as green leaf for some producers and years and as made tea for others, so its tea balance cannot be compared with trade. Tea therefore carries imports and exports (made tea) and the crop series (green leaf) only.</li>
+        </ul></div>
+      <div class="card"><h3>4. Projection model</h3>
+        <p>One model runs every food and country. Foods that are barely traded (roots, tubers and plantains, other vegetables, other fruits, other meat, eggs) are modelled with local production following local demand. Quantities are thousand tonnes, values US$ million, prices US$ per tonne. The base year is 2026.</p>
+        <dl class="fx"><div><dt>Demand</dt><dd>population x consumption per person</dd></div><div><dt>Consumption per person</dt><dd>grows with income (income elasticity x real GDP per person growth), with the regional shift in diets for the food, and with the world price (price elasticity x pass-through x price change)</dd></div><div><dt>Production</dt><dd>recent average, grown on its own damped ten-year trend; follows demand where a country grows most of what it eats; plus any investment uplift; times a weather factor in a shock year</dd></div><div><dt>Imports</dt><dd>demand - production + exports, calibrated so the base year equals the latest observed imports</dd></div><div><dt>Import bill</dt><dd>imports x import unit value, which follows the World Bank price path</dd></div></dl>
+        <p class="small">Elasticities, pass-through and scenario presets are Cottid Africa assumptions (source A14). They can be changed on the <button class="lnk" data-go="forecast">Forecast</button> tab.</p></div>
+      <div class="card"><h3>5. How well the model performs</h3>
+        <p>The model was run as if standing in 2015, 2016 and 2017, projecting five years ahead on FAOSTAT balances across African countries and all foods, and compared with what happened (13,525 comparisons).</p>
+        <div class="kv">
+          <div><b>7%</b><span>median demand error, one year ahead</span></div>
+          <div><b>17%</b><span>median demand error, five years ahead</span></div>
+          <div><b>12%</b><span>median demand error, all horizons</span></div>
+          <div><b>12%</b><span>same test, population growth only</span></div>
+          <div><b>9%</b><span>median production-trend error</span></div>
+        </div>
+        <p>The gain over a population-only benchmark is small: most predictable growth is demographic and annual balances are noisy. The income, diet and price terms are kept because scenarios need them. Net imports were missed by 7% of consumption at five years.</p>
+        <p>Error differs by food: the median demand error runs from 6% to 25%, and is highest for soybeans and cocoa, where crushing and grinding for export move consumption more than diets do.</p>
+        <p>Projections are therefore shown as planning ranges, which combine this error with normal year-to-year variation in output. They are not forecasts of record.</p></div>
+      <div class="card"><h3>6. Data confidence grade</h3>
+        <p>Each food and country pair is graded high, medium or low on the <button class="lnk" data-go="advisory">Advisory</button> tab. Points are given for a current balance (USDA to 2026/27 scores above a FAOSTAT balance ending 2022), for customs trade reported to 2024 or later, and for a backtest demand error of 12% or less for that food.</p></div>
+      <div class="card"><h3>Diet and nutrition</h3>
+        <ul class="tight">
+          <li>Calories and protein per person per day are FAOSTAT food supply figures (2010 to 2022): food available for people to eat after exports, feed, seed, processing and losses, divided by population.</li>
+          <li>They measure supply reaching households, not intake. Household waste and unequal access are not captured, so they overstate what many people eat.</li>
+          <li>Each food uses the same FAOSTAT items as its balance. "Other foods" is the FAOSTAT total less the foods on the platform.</li>
+          <li>Two diet indicators are derived: the share of calories from cereals and roots, and the share of protein from meat, fish, milk and eggs.</li>
+          <li>No requirement or adequacy threshold is applied; needs differ by age, sex and activity.</li>
+        </ul></div>
+      <div class="card"><h3>7. Sufficiency planner</h3>
+        <ul class="tight">
+          <li>Self-sufficiency is production divided by consumption.</li>
+          <li>The planner moves that share in a straight line from today's level to the chosen target by the chosen year.</li>
+          <li>Required production each year is the target share of projected consumption, plus exports if they are kept.</li>
+          <li>The extra output is split between higher yield and more land (60% from yield unless changed), using the latest three-year yield and area.</li>
+          <li>Two reality checks are shown: the country's best five-year production growth on record, and the best yield among comparable producers.</li>
+          <li>Animal products and mixed groups have no yield or area, so the plan gives required output and the pace against the record only.</li>
+          <li>Suitability grades (core markets, original staples) and the intervention library (every food) are Cottid Africa assessments (source A15).</li>
+        </ul></div>
+      <div class="card"><h3>8. Landed cost</h3>
+        <p>One engine prices each of the ten traded staples for every origin and market, in US$ per tonne. Landed cost is not yet built for the other foods.</p>
+        <dl class="fx"><div><dt>CIF</dt><dd>FOB price + ocean freight + insurance</dd></div><div><dt>Customs value</dt><dd>CIF, or a customs reference value where one is set (by road within the region: ex-mill price + half the haulage)</dd></div><div><dt>Duty</dt><dd>the larger of the ad valorem duty and any specific floor per tonne; nil for bloc-originating goods with a certificate of origin</dd></div><div><dt>Levies</dt><dd>each levy rate x customs value</dd></div><div><dt>VAT</dt><dd>VAT rate x (customs value + duty + levies + excise)</dd></div><div><dt>Landed cost</dt><dd>CIF + duty + levies + fees + excise + VAT + port and clearing + inland haulage</dd></div></dl>
+        <p>Freight, port, clearing and inland haulage are Cottid Africa rate cards (estimates), not quotations. Replace them with quotes from freight forwarders and clearing agents before quoting a buyer.</p>
+        <p class="small">Local-currency conversions use the rate stated in the library: Central Bank of Kenya indicative rate, 12 November 2026.</p></div>
+      <div class="card"><h3>9. Who supplies each market</h3>
+        <p>The <button class="lnk" data-go="foodtrade">Food trade</button> tab gives 2024 imports by supplier and exports by destination for every traded food from the same source, in product weight and US dollars, and each country's food trade balance. For each HS heading a country's own report is used where it exists; where the country did not report, or the heading has not been downloaded, its partners' reports are used and the row is marked. For the newer foods, 16 countries had not reported imports for 2024, and their partners' reports are used instead. Customs prices are not applied to the balances of these foods, because customs weights are product weight and the balances are in milk, live-weight or fresh equivalent.</p>
+        <p>Supplier shares cover the ten traded staples and come from UN Comtrade bilateral trade for 2024 (2023 for Ethiopia). Figures reported by the importing country are preferred. Where a country did not report the year, the exports its partners reported to it are used and the market is marked accordingly. Quantities are thousand tonnes and values US$ million.</p></div>
+      <div class="card"><h3>10. Directory: buyers, sellers, compliance, events</h3>
+        <ul class="tight">
+          <li><b>Verified</b> entries name the kind of evidence: a gazette notice, regulator list, official register, report, press report or the organisation's own site.</li>
+          <li><b>Lead to verify</b> entries come from a single unconfirmed listing. They are starting points for enquiry and nothing more.</li>
+          <li>A listing is not an endorsement, and absence from the list means nothing about an organisation.</li>
+          <li>Compliance steps name the authority and the document required; rules change, so confirm with the authority before shipping.</li>
+          <li>Events show whether dates are confirmed, usual or unannounced.</li>
+        </ul></div>
+      <div class="card"><h3>11. Policies, programmes, funders and calls</h3>
+        <p>These registers were read from public sources on 14 November 2026. Programmes carry a status (completed, ongoing or planned) and the period stated in the source. Amounts are as published; where a source gives none, the page says so. Calls for applications close and reopen often: check the funder's page before applying.</p></div>
+      <div class="card"><h3>12. Known limits</h3>
+        <ul class="tight">
+          <li>Outside the seven core markets, and for every food beyond the ten traded staples, balances end in 2022 and later years are model estimates.</li>
+          <li>Vegetables, fruits, groundnuts, soybeans, meat, fish, milk, eggs, coffee, tea and cocoa have customs trade by supplier and destination for one year, 2024. They have no multi-year customs series, reference price, landed cost or directory entries yet, so their balances and projections are in quantities only.</li>
+          <li>Totals for all foods add tonnes of different products (grain, fresh roots, milk, meat), so they describe weight and not value or nutrition. Oil crops crushed for oil are counted both as crop and as oil.</li>
+          <li>FAOSTAT revisions create breaks in some series, for example bananas in Nigeria from 2021. Where a break is visible it is left as published.</li>
+          <li>Much vegetable, fruit and livestock output is grown for home use and is estimated by FAOSTAT with less certainty than traded crops.</li>
+          <li>Freight, port, clearing and haulage figures are rate-card estimates, not quotations.</li>
+          <li>Tariff schedules for standard-depth markets date from 2016 to 2023 and do not capture temporary remissions or stays.</li>
+          <li>Informal cross-border trade is not in customs data, so regional flows are understated.</li>
+          <li>National rules come from the Compliance register and stated government policy, and are fullest for the markets with compliance entries. A full catalogue of national laws is not yet in place.</li>
+          <li>More than half of the buyer entries are still leads to verify.</li>
+        </ul></div>
+      <div class="card"><h3>13. Updates and corrections</h3>
+        <p>A scheduled job refreshes the automatic sources (FAOSTAT, World Bank and UN population data, and UN Comtrade when a key is set), rebuilds the database and republishes the page only if every automated check passes; otherwise the previous version stays in place. The <button class="lnk" data-go="sources">Sources</button> tab shows what each build used. Hand-researched material is updated separately.</p></div>
+    </div>

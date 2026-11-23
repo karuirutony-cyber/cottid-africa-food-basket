@@ -4,6 +4,9 @@ import Home from '@/pages/Home';
 import Building from '@/pages/Building';
 import { Maintenance, NotFound, Offline, RouteError } from '@/pages/SystemPage';
 
+/** A lazily loaded page: each section is its own chunk, so the first load stays small. */
+const page = (path: string, load: () => Promise<{ Component: React.ComponentType }>): RouteObject => ({ path, lazy: load });
+
 /**
  * Every route from section 5 of the build prompt. Pages whose milestone has not landed render
  * <Building>, which shows no figures. Each milestone swaps its routes for lazy-loaded pages.
@@ -24,58 +27,58 @@ export const routes: RouteObject[] = [
           { index: true, element: <Home /> },
 
           // Countries
-          placeholder('countries', 'page.countries'),
-          placeholder('countries/:iso2', 'page.country'),
-          placeholder('countries/:iso2/diet', 'page.diet'),
-          placeholder('countries/:iso2/trade', 'page.trade'),
-          placeholder('compare', 'page.compare'),
+          page('countries', async () => ({ Component: (await import('@/pages/countries/Countries')).default })),
+          page('countries/:iso2', async () => ({ Component: (await import('@/pages/countries/Country')).default })),
+          page('countries/:iso2/diet', async () => ({ Component: (await import('@/pages/countries/Diet')).default })),
+          page('countries/:iso2/trade', async () => ({ Component: (await import('@/pages/countries/Trade')).default })),
+          page('compare', async () => ({ Component: (await import('@/pages/countries/Compare')).default })),
 
           // Analytics
           { path: 'analytics', element: <Navigate to="/analytics/planner" replace /> },
-          placeholder('analytics/planner', 'page.planner'),
-          placeholder('analytics/projections', 'page.projections'),
-          placeholder('analytics/review', 'page.review'),
-          placeholder('analytics/advisory', 'page.advisory'),
-          placeholder('analytics/briefs', 'page.briefs'),
+          page('analytics/planner', async () => ({ Component: (await import('@/pages/analytics/Analytics')).Planner })),
+          page('analytics/projections', async () => ({ Component: (await import('@/pages/analytics/Analytics')).Projections })),
+          page('analytics/review', async () => ({ Component: (await import('@/pages/analytics/Analytics')).Review })),
+          page('analytics/advisory', async () => ({ Component: (await import('@/pages/analytics/Analytics')).Advisory })),
+          page('analytics/briefs', async () => ({ Component: (await import('@/pages/analytics/Analytics')).Briefs })),
 
           // Cost of Imports
           { path: 'cost', element: <Navigate to="/cost/matrix" replace /> },
-          placeholder('cost/matrix', 'page.matrix'),
-          placeholder('cost/calculator', 'page.calculator'),
-          placeholder('cost/origins', 'page.origins'),
-          placeholder('cost/markets', 'page.markets'),
+          page('cost/matrix', async () => ({ Component: (await import('@/pages/cost/Cost')).Matrix })),
+          page('cost/calculator', async () => ({ Component: (await import('@/pages/cost/Cost')).Calculator })),
+          page('cost/origins', async () => ({ Component: (await import('@/pages/cost/Cost')).Origins })),
+          page('cost/markets', async () => ({ Component: (await import('@/pages/cost/Cost')).Markets })),
 
           // Directory
           { path: 'directory', element: <Navigate to="/directory/buyers" replace /> },
-          placeholder('directory/buyers', 'page.buyers'),
-          placeholder('directory/sellers', 'page.sellers'),
-          placeholder('directory/compliance', 'page.compliance'),
-          placeholder('directory/events', 'page.events'),
+          page('directory/buyers', async () => ({ Component: (await import('@/pages/directory/Directory')).Buyers })),
+          page('directory/sellers', async () => ({ Component: (await import('@/pages/directory/Directory')).Sellers })),
+          page('directory/compliance', async () => ({ Component: (await import('@/pages/directory/Directory')).Compliance })),
+          page('directory/events', async () => ({ Component: (await import('@/pages/directory/Directory')).Events })),
 
           // Policy and development
           { path: 'policy', element: <Navigate to="/policy/agreements" replace /> },
-          placeholder('policy/agreements', 'page.agreements'),
-          placeholder('policy/interventions', 'page.interventions'),
-          placeholder('policy/funders', 'page.funders'),
-          placeholder('policy/calls', 'page.calls'),
+          page('policy/agreements', async () => ({ Component: (await import('@/pages/policy/Policy')).Agreements })),
+          page('policy/interventions', async () => ({ Component: (await import('@/pages/policy/Policy')).Interventions })),
+          page('policy/funders', async () => ({ Component: (await import('@/pages/policy/Policy')).Funders })),
+          page('policy/calls', async () => ({ Component: (await import('@/pages/policy/Policy')).Calls })),
 
           // Data
           { path: 'data', element: <Navigate to="/data/explorer" replace /> },
-          placeholder('data/explorer', 'page.explorer'),
-          placeholder('data/apis', 'page.apis'),
-          placeholder('data/sources', 'page.sources'),
+          page('data/explorer', async () => ({ Component: (await import('@/pages/data/Data')).Explorer })),
+          page('data/apis', async () => ({ Component: (await import('@/pages/data/Data')).Apis })),
+          page('data/sources', async () => ({ Component: (await import('@/pages/data/Data')).Sources })),
 
           // About
-          placeholder('about', 'page.about'),
-          placeholder('about/methods', 'page.methods'),
-          placeholder('about/terms', 'page.terms'),
+          page('about', async () => { const A = (await import('@/pages/about/About')).default; return { Component: () => <A page="about" /> }; }),
+          page('about/methods', async () => { const A = (await import('@/pages/about/About')).default; return { Component: () => <A page="methods" /> }; }),
+          page('about/terms', async () => { const A = (await import('@/pages/about/About')).default; return { Component: () => <A page="terms" /> }; }),
 
           // Account (M2)
           placeholder('signin', 'page.signin'),
           placeholder('signup', 'page.signup'),
           placeholder('reset', 'page.reset'),
           placeholder('account', 'page.account'),
-          placeholder('account/saved', 'page.saved'),
+          page('account/saved', async () => ({ Component: (await import('@/pages/account/Saved')).default })),
           placeholder('account/alerts', 'page.alerts'),
           placeholder('account/api-keys', 'page.apiKeys'),
           placeholder('notifications', 'page.notifications'),
