@@ -195,5 +195,21 @@
       "rejected": "Halikukubaliwa",
       "published": "Limechapishwa"
     }
+  },
+  "apikeys": {
+    "lead": "Funguo za API ya Africa Food Basket. Kila ufunguo una kikomo cha maombi kwa siku, kinachoanza upya saa 00:00 UTC.",
+    "create": "Tengeneza ufunguo",
+    "name": "Jina la ufunguo",
+    "createButton": "Tengeneza ufunguo",
+    "copyNow": "Nakili ufunguo huu sasa. Kwa usalama wako unaonyeshwa mara moja tu.",
+    "copy": "Nakili",
+    "yours": "Funguo zako",
+    "none": "Bado huna funguo za API.",
+    "key": "Ufunguo",
+    "today": "Iliyotumika leo",
+    "total": "Jumla",
+    "revoke": "Batilisha",
+    "revoked": "Umebatilishwa",
+    "docs": "Jinsi ya kutumia API"
   }
 }

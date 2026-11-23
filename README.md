@@ -76,6 +76,15 @@ Do these once, in the Firebase console for `cottid-72d51`:
 
 GitHub Actions runs lint, typecheck, locale check, unit tests, build and the Playwright journeys on every push. On `main` it then deploys to the Hosting preview channel `next` (not the live site, until the new app reaches parity with the legacy page). To enable it, add a repository secret `FIREBASE_SERVICE_ACCOUNT_COTTID_72D51` holding a service-account key JSON with the *Firebase Hosting Admin* role (`firebase init hosting:github` creates one for you).
 
+## Public API
+
+`GET /api/v1/...` on the Hosting domain (rewritten to the `api` function in africa-south1). Read-only, over the seeded Firestore data; every value keeps its source ID.
+
+- **Keys:** signed-in users create up to 5 keys at `/account/api-keys`. The key is shown once; only its SHA-256 hash is stored (`apiKeys/{hash}`). Send it as `X-API-Key`.
+- **Quotas:** daily per key (default 10,000; set `settings/platform.apiQuotas.member`), reset 00:00 UTC. Responses carry `X-RateLimit-Limit` and `X-RateLimit-Remaining`; over quota returns 429 with `Retry-After`; missing or revoked keys return 401.
+- **Endpoints:** `/meta`, `/countries`, `/countries/{iso2}`, `/foods`, `/series/{iso2}/{food}`, `/projections/{iso2}/{food}`, `/nutrition/{iso2}`, `/trade/{iso2}?year=`, `/buyers?country=`, `/suppliers`, `/sources`, `/sources/{id}`. Full description: `/api/v1/openapi.json` (no key needed).
+- **Downloads:** each dataset is also published whole at `/data/<NAME>.json`, with `/data/manifest.json` listing the version and checks.
+
 ## Languages
 
 English, French, Portuguese, Arabic (laid out right to left) and Swahili. Strings live in `locales/<lang>/*.json`; English is the reference and `pnpm check:locales` (run in CI) fails on any missing key or placeholder. Numbers and dates are formatted per locale (Arabic keeps Latin digits, matching the sources).

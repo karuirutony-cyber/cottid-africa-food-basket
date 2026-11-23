@@ -20,6 +20,7 @@ const db = () => getFirestore();
 const DATA_BASE_URL = defineString('DATA_BASE_URL', { default: 'https://cottid-72d51.web.app' });
 
 import { audit, requireStaff } from './review';
+export { api, createApiKey, listApiKeys, revokeApiKey } from './api';
 export { submit, review, publishRecord, reviewQueue, myContributions, getRecord, auditList, adminStats } from './review';
 
 // ---- ensureProfile: called by the client on every sign-in ----------------------------------------

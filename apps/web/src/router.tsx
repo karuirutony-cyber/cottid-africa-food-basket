@@ -99,7 +99,7 @@ export const routes: RouteObject[] = [
           page('account', async () => ({ Component: (await import('@/pages/account/Auth')).Account })),
           page('account/saved', async () => ({ Component: (await import('@/pages/account/Saved')).default })),
           placeholder('account/alerts', 'page.alerts'),
-          placeholder('account/api-keys', 'page.apiKeys'),
+          page('account/api-keys', async () => ({ Component: (await import('@/pages/account/ApiKeys')).default })),
           placeholder('notifications', 'page.notifications'),
 
           // Organisation (M9)

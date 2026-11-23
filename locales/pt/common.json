@@ -195,5 +195,21 @@
       "rejected": "Não aceite",
       "published": "Publicada"
     }
+  },
+  "apikeys": {
+    "lead": "Chaves para a API Africa Food Basket. Cada chave tem uma quota diária de pedidos, que reinicia às 00:00 UTC.",
+    "create": "Criar uma chave",
+    "name": "Nome da chave",
+    "createButton": "Criar chave",
+    "copyNow": "Copie esta chave agora. Por segurança, só é mostrada uma vez.",
+    "copy": "Copiar",
+    "yours": "As suas chaves",
+    "none": "Ainda não tem chaves de API.",
+    "key": "Chave",
+    "today": "Usados hoje",
+    "total": "Desde o início",
+    "revoke": "Revogar",
+    "revoked": "Revogada",
+    "docs": "Como usar a API"
   }
 }

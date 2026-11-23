@@ -195,5 +195,21 @@
       "rejected": "Not accepted",
       "published": "Published"
     }
+  },
+  "apikeys": {
+    "lead": "Keys for the Africa Food Basket API. Each key has a daily quota of requests; it resets at 00:00 UTC.",
+    "create": "Create a key",
+    "name": "Name for the key",
+    "createButton": "Create key",
+    "copyNow": "Copy this key now. For your security it is shown only once.",
+    "copy": "Copy",
+    "yours": "Your keys",
+    "none": "You have no API keys yet.",
+    "key": "Key",
+    "today": "Used today",
+    "total": "All time",
+    "revoke": "Revoke",
+    "revoked": "Revoked",
+    "docs": "How to use the API"
   }
 }

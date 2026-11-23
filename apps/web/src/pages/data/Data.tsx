@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useLocation, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import type { Source } from '@afb/engines';
 import { useDatasets } from '@/data/datasets';
 import { ExtLink, RecordTable } from '@/components/RecordTable';
@@ -45,6 +45,21 @@ export function Sources() {
   );
 }
 
+const API_ENDPOINTS: [string, string][] = [
+  ['/meta', 'Dataset version, build date, record years, source counts'],
+  ['/countries', 'All 54 countries: names in five languages, region, trade blocs'],
+  ['/countries/{iso2}', 'One country, with its macro series and their sources'],
+  ['/foods', 'All 34 foods: names, food group, basis, HS codes'],
+  ['/series/{iso2}/{food}', 'Production, imports, exports and use by year, with a source ID per series'],
+  ['/projections/{iso2}/{food}', 'Base-case projection to the horizon, with ranges'],
+  ['/nutrition/{iso2}', 'Calories and protein per person by food and year'],
+  ['/trade/{iso2}?year=2024', 'Customs imports by supplier and exports by destination'],
+  ['/buyers?country=Kenya', 'Buyers, with status, evidence and source IDs'],
+  ['/suppliers', 'Exporters, boards and regulators at each origin'],
+  ['/sources', 'Every source: title, link, date read'],
+  ['/sources/{id}', 'One source'],
+];
+
 export function Apis() {
   const d = useDatasets('APIS');
   if (!d.data) return <DataState loading={d.loading} error={d.error} />;
@@ -80,9 +95,42 @@ export function Apis() {
           </table>
         </div>
       </Card>
-      <Card title="Download the reference data">
-        <p className="m-0 text-muted">
-          Each dataset is published as JSON at a stable address and refreshed when a new dataset version is published. A keyed REST API with quotas (<code>/api/v1</code>) follows.
+      <Card title="The Africa Food Basket API" className="scroll-mt-24">
+        <div id="api" />
+        <p className="m-0">
+          A read-only REST API over the same data, with a key and a daily quota per key (resets at 00:00 UTC). Every value keeps its source ID.{' '}
+          <Link to="/account/api-keys">Create a key</Link> (free account), then send it in the <code>X-API-Key</code> header.
+        </p>
+        <pre data-no-tr className="mt-3 overflow-x-auto rounded-lg bg-[#2a1a10] p-3 text-[13px] text-[#fbf3e6]">
+          {`curl -H "X-API-Key: afb_…" ${base}/api/v1/series/KE/rice`}
+        </pre>
+        <div tabIndex={0} role="region" aria-label="Scrollable table" className="scroll-x mt-3">
+          <table className="tbl">
+            <thead>
+              <tr>
+                <th>Endpoint (GET)</th>
+                <th>Returns</th>
+              </tr>
+            </thead>
+            <tbody data-no-tr>
+              {API_ENDPOINTS.map(([path, what]) => (
+                <tr key={path}>
+                  <td>
+                    <code>/api/v1{path}</code>
+                  </td>
+                  <td>{what}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="m-0 mt-3 text-[13.5px] text-muted">
+          Responses carry <code>X-RateLimit-Limit</code> and <code>X-RateLimit-Remaining</code>. Over the quota you get HTTP 429 with <code>Retry-After</code>; a missing or revoked key gets 401. Full description:{' '}
+          <a href="/api/v1/openapi.json">OpenAPI 3 (openapi.json)</a>.
+        </p>
+      </Card>
+      <Card title="Download the reference data">        <p className="m-0 text-muted">
+          Each dataset is published as JSON at a stable address and refreshed when a new dataset version is published. For selected records, use the API below.
         </p>
         <ul className="m-0 mt-3 grid list-none gap-1 p-0 sm:grid-cols-2">
           {sets.map((s) => (

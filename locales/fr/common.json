@@ -195,5 +195,21 @@
       "rejected": "Non retenue",
       "published": "Publiée"
     }
+  },
+  "apikeys": {
+    "lead": "Clés pour l’API Africa Food Basket. Chaque clé dispose d’un quota quotidien de requêtes, remis à zéro à 00 h 00 UTC.",
+    "create": "Créer une clé",
+    "name": "Nom de la clé",
+    "createButton": "Créer la clé",
+    "copyNow": "Copiez cette clé maintenant. Par sécurité, elle n’est affichée qu’une fois.",
+    "copy": "Copier",
+    "yours": "Vos clés",
+    "none": "Vous n’avez pas encore de clé d’API.",
+    "key": "Clé",
+    "today": "Utilisées aujourd’hui",
+    "total": "Depuis le début",
+    "revoke": "Révoquer",
+    "revoked": "Révoquée",
+    "docs": "Comment utiliser l’API"
   }
 }
