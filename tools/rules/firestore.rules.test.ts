@@ -102,8 +102,30 @@ describe('users', () => {
   it('saved views and alerts are private to their owner', async () => {
     await assertSucceeds(setDoc(doc(as('alice'), 'users/alice/saved/v1'), { title: 'x' }));
     await assertFails(getDoc(doc(as('bob'), 'users/alice/saved/v1')));
-    await assertSucceeds(setDoc(doc(as('alice'), 'users/alice/alerts/a1'), { country: 'KE' }));
-    await assertFails(setDoc(doc(as('bob'), 'users/alice/alerts/a1'), { country: 'KE' }));
+    await assertSucceeds(setDoc(doc(as('alice'), 'users/alice/alerts/a1'), { kind: 'events', country: 'KE', days: 14 }));
+    await assertFails(setDoc(doc(as('bob'), 'users/alice/alerts/a1'), { kind: 'events', country: 'KE', days: 14 }));
+  });
+});
+
+describe('alerts and notifications', () => {
+  it('a user keeps valid alert rules of their own only', async () => {
+    await assertSucceeds(setDoc(doc(as('alice'), 'users/alice/alerts/a1'), { kind: 'calls', country: 'NG', food: '', days: 30, email: true }));
+    await assertFails(setDoc(doc(as('alice'), 'users/alice/alerts/a2'), { kind: 'calls', days: 999 }));
+    await assertFails(setDoc(doc(as('alice'), 'users/alice/alerts/a3'), { kind: 'anything', days: 10 }));
+    await assertFails(setDoc(doc(as('bob'), 'users/alice/alerts/a4'), { kind: 'calls', days: 10 }));
+  });
+  it('notifications are read by their owner, marked read, never written by clients', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'users/alice/notifications/n1'), { title: 'x', read: false });
+    });
+    await assertSucceeds(getDoc(doc(as('alice'), 'users/alice/notifications/n1')));
+    await assertSucceeds(updateDoc(doc(as('alice'), 'users/alice/notifications/n1'), { read: true }));
+    await assertFails(updateDoc(doc(as('alice'), 'users/alice/notifications/n1'), { title: 'changed' }));
+    await assertFails(getDoc(doc(as('bob'), 'users/alice/notifications/n1')));
+    await assertFails(setDoc(doc(as('alice'), 'users/alice/notifications/n2'), { title: 'fake' }));
+  });
+  it('the e-mail queue is closed to clients', async () => {
+    await assertFails(setDoc(doc(as('alice'), 'mail/m1'), { to: 'x@example.com' }));
   });
 });
 

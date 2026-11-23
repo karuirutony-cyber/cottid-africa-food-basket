@@ -1,17 +1,8 @@
 import { createBrowserRouter, Navigate, type RouteObject } from 'react-router-dom';
 import { Shell } from '@/components/Shell';
 import Home from '@/pages/Home';
-import Building from '@/pages/Building';
+import type * as AdminMore from '@/pages/admin/AdminMore';
 import { Maintenance, NotFound, Offline, RouteError } from '@/pages/SystemPage';
-
-/** Admin pages: staff only (verifier and above, with two-step verification). */
-const staff = (path: string, titleKey: string): RouteObject => ({
-  path,
-  lazy: async () => {
-    const { RequireRole } = await import('@/pages/account/Auth');
-    return { Component: () => <RequireRole min="verifier"><Building titleKey={titleKey} /></RequireRole> };
-  },
-});
 
 /** A staff page with its real component. */
 const staffPage = (path: string, min: 'verifier' | 'data_steward' | 'platform_admin', name: 'Dashboard' | 'ReviewQueue' | 'AuditLog'): RouteObject => ({
@@ -23,18 +14,20 @@ const staffPage = (path: string, min: 'verifier' | 'data_steward' | 'platform_ad
   },
 });
 
+/** A staff page from AdminMore, behind a minimum role. */
+const staffMore = (path: string, min: 'verifier' | 'data_steward' | 'platform_admin', pick: (m: typeof AdminMore) => React.ComponentType): RouteObject => ({
+  path,
+  lazy: async () => {
+    const [{ RequireRole }, m] = await Promise.all([import('@/pages/account/Auth'), import('@/pages/admin/AdminMore')]);
+    const C = pick(m);
+    return { Component: () => <RequireRole min={min}><C /></RequireRole> };
+  },
+});
+
 /** A lazily loaded page: each section is its own chunk, so the first load stays small. */
 const page = (path: string, load: () => Promise<{ Component: React.ComponentType }>): RouteObject => ({ path, lazy: load });
 
-/**
- * Every route from section 5 of the build prompt. Pages whose milestone has not landed render
- * <Building>, which shows no figures. Each milestone swaps its routes for lazy-loaded pages.
- */
-const placeholder = (path: string, titleKey: string): RouteObject => ({
-  path,
-  element: <Building titleKey={titleKey} />,
-});
-
+/** Every route from section 5 of the build prompt; each section loads as its own chunk. */
 export const routes: RouteObject[] = [
   {
     element: <Shell />,
@@ -98,14 +91,14 @@ export const routes: RouteObject[] = [
           page('reset', async () => ({ Component: (await import('@/pages/account/Auth')).Reset })),
           page('account', async () => ({ Component: (await import('@/pages/account/Auth')).Account })),
           page('account/saved', async () => ({ Component: (await import('@/pages/account/Saved')).default })),
-          placeholder('account/alerts', 'page.alerts'),
+          page('account/alerts', async () => ({ Component: (await import('@/pages/account/Alerts')).Alerts })),
           page('account/api-keys', async () => ({ Component: (await import('@/pages/account/ApiKeys')).default })),
-          placeholder('notifications', 'page.notifications'),
+          page('notifications', async () => ({ Component: (await import('@/pages/account/Alerts')).Notifications })),
 
           // Organisation (M9)
-          placeholder('org', 'page.org'),
-          placeholder('org/members', 'page.members'),
-          placeholder('org/settings', 'page.settings'),
+          page('org', async () => ({ Component: (await import('@/pages/org/Org')).OrgHome })),
+          page('org/members', async () => ({ Component: (await import('@/pages/org/Org')).OrgMembers })),
+          page('org/settings', async () => ({ Component: (await import('@/pages/org/Org')).OrgSettings })),
 
           // Contribute (M7)
           page('contribute', async () => ({ Component: (await import('@/pages/contribute/Contribute')).default })),
@@ -113,17 +106,17 @@ export const routes: RouteObject[] = [
           // Admin (role-gated from M2; pages from M7–M9)
           staffPage('admin', 'verifier', 'Dashboard'),
           staffPage('admin/review', 'verifier', 'ReviewQueue'),
-          staff('admin/directory', 'page.adminDirectory'),
-          staff('admin/content', 'page.adminContent'),
-          staff('admin/prices', 'page.adminPrices'),
-          staff('admin/duties', 'page.adminDuties'),
-          staff('admin/sources', 'page.adminSources'),
-          staff('admin/datasets', 'page.adminDatasets'),
-          staff('admin/ingest', 'page.adminIngest'),
-          staff('admin/users', 'page.adminUsers'),
-          staff('admin/organisations', 'page.adminOrganisations'),
+          staffMore('admin/directory', 'data_steward', (m) => () => <m.Records preset="directory" />),
+          staffMore('admin/content', 'data_steward', (m) => () => <m.Records preset="content" />),
+          staffMore('admin/prices', 'data_steward', (m) => () => <m.Records preset="prices" />),
+          staffMore('admin/duties', 'data_steward', (m) => () => <m.Records preset="duties" />),
+          staffMore('admin/sources', 'data_steward', (m) => () => <m.Records preset="sources" />),
+          staffMore('admin/datasets', 'data_steward', (m) => m.Datasets),
+          staffMore('admin/ingest', 'data_steward', (m) => m.Ingest),
+          staffMore('admin/users', 'platform_admin', (m) => m.Users),
+          staffMore('admin/organisations', 'platform_admin', (m) => m.Organisations),
           staffPage('admin/audit', 'platform_admin', 'AuditLog'),
-          staff('admin/settings', 'page.adminSettings'),
+          staffMore('admin/settings', 'platform_admin', (m) => m.Settings),
 
           // System
           { path: 'offline', element: <Offline /> },

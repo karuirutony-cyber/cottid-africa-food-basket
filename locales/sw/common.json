@@ -211,5 +211,49 @@
     "revoke": "Batilisha",
     "revoked": "Umebatilishwa",
     "docs": "Jinsi ya kutumia API"
+  },
+  "alerts": {
+    "lead": "Pata taarifa mwito wa mapendekezo unapokaribia kufungwa, au tukio linapokaribia, kwa nchi na vyakula unavyofuatilia. Arifa hukaguliwa kila asubuhi.",
+    "new": "Mpya",
+    "kind": "Nijulishe kuhusu",
+    "calls": "Miito inayokaribia kufungwa",
+    "events": "Matukio yajayo",
+    "country": "Nchi",
+    "food": "Chakula",
+    "anyCountry": "Nchi yoyote",
+    "anyFood": "Chakula chochote",
+    "window": "Mapema kiasi gani",
+    "days": "siku {{n}}",
+    "email": "Pia kwa barua pepe",
+    "add": "Ongeza arifa",
+    "saved": "Arifa imehifadhiwa.",
+    "yours": "Arifa zako",
+    "none": "Bado huna arifa.",
+    "byEmail": "barua pepe",
+    "notesLead": "Kile arifa zako zimepata.",
+    "noNotes": "Bado hakuna kitu. Arifa zako hukaguliwa kila asubuhi.",
+    "markRead": "Weka kuwa imesomwa"
+  },
+  "org": {
+    "lead": "Shirika huwawezesha wenzako kufanya kazi pamoja: wanachama, majukumu na ufikiaji wa pamoja.",
+    "invitations": "Mialiko kwako",
+    "accept": "Kubali",
+    "yourRole": "Jukumu lako",
+    "members": "wanachama {{n}}",
+    "plan": "Mpango",
+    "create": "Unda shirika",
+    "name": "Jina la shirika",
+    "createButton": "Unda shirika",
+    "invite": "Mwalike mwenzako",
+    "roleLabel": "Jukumu",
+    "inviteButton": "Tuma mwaliko",
+    "invited": "Mwaliko umetumwa kwa {{email}}.",
+    "pending": "Amealikwa",
+    "adminsOnly": "Wasimamizi wa shirika pekee wanaweza kubadilisha mipangilio hii.",
+    "role": {
+      "org_member": "Mwanachama",
+      "org_analyst": "Mchambuzi",
+      "org_admin": "Msimamizi"
+    }
   }
 }

@@ -76,6 +76,14 @@ Do these once, in the Firebase console for `cottid-72d51`:
 
 GitHub Actions runs lint, typecheck, locale check, unit tests, build and the Playwright journeys on every push. On `main` it then deploys to the Hosting preview channel `next` (not the live site, until the new app reaches parity with the legacy page). To enable it, add a repository secret `FIREBASE_SERVICE_ACCOUNT_COTTID_72D51` holding a service-account key JSON with the *Firebase Hosting Admin* role (`firebase init hosting:github` creates one for you).
 
+## Datasets, ingest, alerts and organisations
+
+- **Dataset versions** (`/admin/datasets`, data stewards): *Build* snapshots the published `/data/*.json` to Cloud Storage (`datasets/{version}/`) and runs the section 1 checks; *Publish* writes the reference collections from a snapshot that passed every check and points `meta/dataset` at it; *Roll back* republishes the version that was live before. Every step is audited.
+- **Weekly ingest** (`scheduledIngest`, Mondays 03:00 Nairobi; or *Run now* at `/admin/ingest`): compares the latest World Bank WDI population with the published dataset and records each difference in `ingestRuns` for a data steward. It never publishes on its own. FAOSTAT, UN WPP and UN Comtrade (`COMTRADE_KEY` in Secret Manager) are the next sources.
+- **Alerts** (`/account/alerts`): follow calls closing soon or upcoming events, by country and food. The `alerts` function runs daily at 06:00 (Nairobi), writes `users/{uid}/notifications` (shown at `/notifications`) and, if asked, queues an e-mail in `mail` for the Trigger Email extension. A platform admin can run it now from `/admin/settings`. A notification is never sent twice for the same alert and item.
+- **Organisations** (`/org`): create one, invite colleagues by e-mail (they accept at `/org` after signing in with that address), set roles (member, analyst, administrator), remove members. An organisation always keeps at least one administrator.
+- **Admin console**: users and roles (`/admin/users`; nobody grants a role above their own), organisations, platform settings and API quotas, and direct record correction for directory, content, prices, duties and sources (each change needs a reason and is audited).
+
 ## Public API
 
 `GET /api/v1/...` on the Hosting domain (rewritten to the `api` function in africa-south1). Read-only, over the seeded Firestore data; every value keeps its source ID.

@@ -69,7 +69,19 @@ service cloud.firestore {
       allow delete: if false;
 
       match /saved/{id}  { allow read, write: if isSelf(uid); }
-      match /alerts/{id} { allow read, write: if isSelf(uid); }
+      match /alerts/{id} {
+        allow read, delete: if isSelf(uid);
+        allow create, update: if isSelf(uid)
+          && request.resource.data.kind in ['calls', 'events']
+          && request.resource.data.days is int && request.resource.data.days >= 1 && request.resource.data.days <= 180
+          && request.resource.data.keys().hasOnly(['kind', 'country', 'food', 'days', 'email', 'createdAt']);
+      }
+      // Written by the alerts function; the owner reads them and marks them read.
+      match /notifications/{id} {
+        allow read: if isSelf(uid);
+        allow update: if isSelf(uid) && onlyChanges(['read']);
+        allow create, delete: if false;
+      }
     }
 
     // ---- Organisations: members read; changes go through functions -------------------------------

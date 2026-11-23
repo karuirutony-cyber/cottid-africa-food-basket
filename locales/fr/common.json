@@ -211,5 +211,49 @@
     "revoke": "Révoquer",
     "revoked": "Révoquée",
     "docs": "Comment utiliser l’API"
+  },
+  "alerts": {
+    "lead": "Soyez prévenu lorsqu’un appel à propositions va se clôturer ou qu’un événement approche, pour les pays et aliments que vous suivez. Les alertes sont vérifiées chaque matin.",
+    "new": "Nouveau",
+    "kind": "Me prévenir pour",
+    "calls": "Appels bientôt clos",
+    "events": "Événements à venir",
+    "country": "Pays",
+    "food": "Aliment",
+    "anyCountry": "Tout pays",
+    "anyFood": "Tout aliment",
+    "window": "Combien de temps à l’avance",
+    "days": "{{n}} jours",
+    "email": "Aussi par e-mail",
+    "add": "Ajouter l’alerte",
+    "saved": "Alerte enregistrée.",
+    "yours": "Vos alertes",
+    "none": "Vous n’avez pas encore d’alerte.",
+    "byEmail": "e-mail",
+    "notesLead": "Ce que vos alertes ont trouvé.",
+    "noNotes": "Rien pour l’instant. Vos alertes sont vérifiées chaque matin.",
+    "markRead": "Marquer comme lu"
+  },
+  "org": {
+    "lead": "Une organisation permet à des collègues de travailler ensemble : membres, rôles et accès partagé.",
+    "invitations": "Invitations pour vous",
+    "accept": "Accepter",
+    "yourRole": "Votre rôle",
+    "members": "{{n}} membres",
+    "plan": "Formule",
+    "create": "Créer une organisation",
+    "name": "Nom de l’organisation",
+    "createButton": "Créer l’organisation",
+    "invite": "Inviter un collègue",
+    "roleLabel": "Rôle",
+    "inviteButton": "Envoyer l’invitation",
+    "invited": "Invitation envoyée à {{email}}.",
+    "pending": "Invité",
+    "adminsOnly": "Seuls les administrateurs de l’organisation peuvent modifier ces paramètres.",
+    "role": {
+      "org_member": "Membre",
+      "org_analyst": "Analyste",
+      "org_admin": "Administrateur"
+    }
   }
 }

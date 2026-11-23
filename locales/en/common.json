@@ -211,5 +211,49 @@
     "revoke": "Revoke",
     "revoked": "Revoked",
     "docs": "How to use the API"
+  },
+  "alerts": {
+    "lead": "Get told when a call for proposals is about to close, or an event is coming up, for the countries and foods you follow. Alerts are checked every morning.",
+    "new": "New",
+    "kind": "Tell me about",
+    "calls": "Calls closing soon",
+    "events": "Upcoming events",
+    "country": "Country",
+    "food": "Food",
+    "anyCountry": "Any country",
+    "anyFood": "Any food",
+    "window": "How far ahead",
+    "days": "{{n}} days",
+    "email": "Also by e-mail",
+    "add": "Add alert",
+    "saved": "Alert saved.",
+    "yours": "Your alerts",
+    "none": "You have no alerts yet.",
+    "byEmail": "e-mail",
+    "notesLead": "What your alerts have found.",
+    "noNotes": "Nothing yet. Your alerts are checked every morning.",
+    "markRead": "Mark as read"
+  },
+  "org": {
+    "lead": "An organisation lets colleagues work together: members, roles and shared access.",
+    "invitations": "Invitations for you",
+    "accept": "Accept",
+    "yourRole": "Your role",
+    "members": "{{n}} members",
+    "plan": "Plan",
+    "create": "Create an organisation",
+    "name": "Organisation name",
+    "createButton": "Create organisation",
+    "invite": "Invite a colleague",
+    "roleLabel": "Role",
+    "inviteButton": "Send invitation",
+    "invited": "Invitation sent to {{email}}.",
+    "pending": "Invited",
+    "adminsOnly": "Only organisation administrators can change these settings.",
+    "role": {
+      "org_member": "Member",
+      "org_analyst": "Analyst",
+      "org_admin": "Administrator"
+    }
   }
 }

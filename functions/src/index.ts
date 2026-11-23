@@ -4,7 +4,6 @@ import { FieldValue, getFirestore } from 'firebase-admin/firestore';
 import { logger } from 'firebase-functions/v2';
 import { HttpsError, onCall, onRequest } from 'firebase-functions/v2/https';
 import { onDocumentWritten } from 'firebase-functions/v2/firestore';
-import { defineString } from 'firebase-functions/params';
 import { z } from 'zod';
 import { LANGS, ROLES, type Role } from '@afb/schema';
 import { buildDocs, countByCollection, PLATFORM_DEFAULTS, type Datasets } from '../../tools/seed-lib';
@@ -16,10 +15,13 @@ import namesSw from '../../locales/sw/names.json';
 
 
 const db = () => getFirestore();
-/** Where bootstrap reads the published datasets (the Hosting site serves /data/*.json). */
-const DATA_BASE_URL = defineString('DATA_BASE_URL', { default: 'https://cottid-72d51.web.app' });
 
 import { audit, requireStaff } from './review';
+import { loadPublished } from './datasets';
+export { buildDataset, publishDataset, rollbackDataset, listDatasets, scheduledIngest, runIngest, listIngestRuns } from './datasets';
+export { alerts, runAlertsNow } from './alerts';
+export { createOrg, inviteMember, myInvites, acceptInvite, setMemberRole, removeMember, orgInfo, updateOrg } from './orgs';
+export { adminListUsers, setUserRole, adminListOrgs, updateSettings, adminList, adminUpdate } from './admin';
 export { api, createApiKey, listApiKeys, revokeApiKey } from './api';
 export { submit, review, publishRecord, reviewQueue, myContributions, getRecord, auditList, adminStats } from './review';
 
@@ -75,21 +77,9 @@ export const syncRoleClaim = onDocumentWritten('users/{uid}', async (event) => {
 });
 
 // ---- bootstrap: build every reference collection (platform admins, idempotent) --------------------
-async function loadFromHosting(base: string): Promise<Datasets> {
-  const get = async (n: string) => {
-    const r = await fetch(`${base.replace(/\/$/, '')}/data/${n}.json`);
-    if (!r.ok) throw new Error(`Could not fetch ${n}.json from ${base} (${r.status})`);
-    return r.json();
-  };
-  const names = ['TS', 'LIB', 'REG', 'SRC', 'NUT', 'FT', 'SELL', 'CALLS', 'EVENTS', 'POL', 'DEVT', 'DEVF', 'PROG'] as const;
-  const vals = await Promise.all(names.map(get));
-  const D = Object.fromEntries(names.map((n, i) => [n, vals[i]])) as Omit<Datasets, 'names'>;
-  return { ...D, names: { en: namesEn, fr: namesFr, pt: namesPt, ar: namesAr, sw: namesSw } };
-}
-
 export const bootstrap = onCall({ timeoutSeconds: 540, memory: '1GiB' }, async (req) => {
   requireStaff(req, 'platform_admin');
-  const D = await loadFromHosting(DATA_BASE_URL.value());
+  const D = { ...(await loadPublished()), names: { en: namesEn, fr: namesFr, pt: namesPt, ar: namesAr, sw: namesSw } } as unknown as Datasets;
   const docs = buildDocs(D);
   for (let i = 0; i < docs.length; i += 400) {
     const batch = db().batch();

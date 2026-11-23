@@ -1,4 +1,5 @@
 import { initializeApp, getApps } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
 import { setGlobalOptions } from 'firebase-functions/v2';
 
 /**
@@ -7,4 +8,8 @@ import { setGlobalOptions } from 'firebase-functions/v2';
  * Every function runs in Johannesburg, next to the Firestore database.
  */
 setGlobalOptions({ region: 'africa-south1', maxInstances: 10 });
-if (!getApps().length) initializeApp();
+if (!getApps().length) {
+  initializeApp();
+  // Legacy records leave some optional fields undefined; skip them, as `pnpm seed` does.
+  getFirestore().settings({ ignoreUndefinedProperties: true });
+}

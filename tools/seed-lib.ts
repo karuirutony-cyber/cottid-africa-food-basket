@@ -6,6 +6,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   Forecast as F,
+  africaTrade,
   exportsOf,
   importsOf,
   type FTData,
@@ -218,6 +219,33 @@ export function buildDocs(D: Datasets, now = new Date().toISOString().slice(0, 1
   for (const s of D.SRC) add(`sources/${s.id}`, { id: s.id, title: s.title, publisher: s.title.split(',')[0] ?? null, url: s.url, dateRead: s.date });
 
   return out;
+}
+
+export interface Check {
+  name: string;
+  value: string | number;
+  expected: string | number;
+  passed: boolean;
+}
+
+/** The section 1 checks every dataset must pass before it can be published. */
+export function runChecks(D: Datasets): Check[] {
+  const A = africaTrade(D.TS, D.FT, D.SELL);
+  const imp = A.reduce((a, x) => a + x.i, 0);
+  const exp = A.reduce((a, x) => a + x.e, 0);
+  const rows: [string, string | number, string | number][] = [
+    ['countries', Object.keys(D.TS.meta.markets).length, 54],
+    ['foods', Object.keys(D.TS.comm).length, 34],
+    ['food groups', D.TS.meta.food_groups.length, 9],
+    ['sources', D.SRC.length, 275],
+    ['buyers', D.REG.buyers.length, 161],
+    ['suppliers', D.REG.suppliers.length, 38],
+    ['compliance entries', D.REG.compliance.length, 107],
+    ['events', D.EVENTS.length, 35],
+    ['Africa food imports 2024 (US$ bn)', (imp / 1000).toFixed(1), '77.6'],
+    ['Africa food exports 2024 (US$ bn)', (exp / 1000).toFixed(1), '38.2'],
+  ];
+  return rows.map(([name, value, expected]) => ({ name, value, expected, passed: value === expected }));
 }
 
 /** Defaults for settings/platform, written only if the document does not exist. */

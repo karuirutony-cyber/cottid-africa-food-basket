@@ -211,5 +211,49 @@
     "revoke": "Revogar",
     "revoked": "Revogada",
     "docs": "Como usar a API"
+  },
+  "alerts": {
+    "lead": "Seja avisado quando um convite à apresentação de propostas estiver a fechar ou um evento se aproximar, para os países e alimentos que segue. Os alertas são verificados todas as manhãs.",
+    "new": "Novo",
+    "kind": "Avisar-me sobre",
+    "calls": "Convites prestes a fechar",
+    "events": "Eventos próximos",
+    "country": "País",
+    "food": "Alimento",
+    "anyCountry": "Qualquer país",
+    "anyFood": "Qualquer alimento",
+    "window": "Com que antecedência",
+    "days": "{{n}} dias",
+    "email": "Também por e-mail",
+    "add": "Adicionar alerta",
+    "saved": "Alerta guardado.",
+    "yours": "Os seus alertas",
+    "none": "Ainda não tem alertas.",
+    "byEmail": "e-mail",
+    "notesLead": "O que os seus alertas encontraram.",
+    "noNotes": "Ainda nada. Os seus alertas são verificados todas as manhãs.",
+    "markRead": "Marcar como lido"
+  },
+  "org": {
+    "lead": "Uma organização permite que colegas trabalhem em conjunto: membros, funções e acesso partilhado.",
+    "invitations": "Convites para si",
+    "accept": "Aceitar",
+    "yourRole": "A sua função",
+    "members": "{{n}} membros",
+    "plan": "Plano",
+    "create": "Criar uma organização",
+    "name": "Nome da organização",
+    "createButton": "Criar organização",
+    "invite": "Convidar um colega",
+    "roleLabel": "Função",
+    "inviteButton": "Enviar convite",
+    "invited": "Convite enviado para {{email}}.",
+    "pending": "Convidado",
+    "adminsOnly": "Só os administradores da organização podem alterar estas definições.",
+    "role": {
+      "org_member": "Membro",
+      "org_analyst": "Analista",
+      "org_admin": "Administrador"
+    }
   }
 }
