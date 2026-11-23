@@ -1,12 +1,12 @@
-import { initializeApp } from 'firebase-admin/app';
+import './options';
 import { getAuth } from 'firebase-admin/auth';
 import { FieldValue, getFirestore } from 'firebase-admin/firestore';
-import { setGlobalOptions, logger } from 'firebase-functions/v2';
-import { HttpsError, onCall, onRequest, type CallableRequest } from 'firebase-functions/v2/https';
+import { logger } from 'firebase-functions/v2';
+import { HttpsError, onCall, onRequest } from 'firebase-functions/v2/https';
 import { onDocumentWritten } from 'firebase-functions/v2/firestore';
 import { defineString } from 'firebase-functions/params';
 import { z } from 'zod';
-import { hasRole, LANGS, ROLES, type Role } from '@afb/schema';
+import { LANGS, ROLES, type Role } from '@afb/schema';
 import { buildDocs, countByCollection, PLATFORM_DEFAULTS, type Datasets } from '../../tools/seed-lib';
 import namesEn from '../../locales/en/names.json';
 import namesFr from '../../locales/fr/names.json';
@@ -14,28 +14,13 @@ import namesPt from '../../locales/pt/names.json';
 import namesAr from '../../locales/ar/names.json';
 import namesSw from '../../locales/sw/names.json';
 
-initializeApp();
-/** Every function runs in Johannesburg, next to the Firestore database. */
-setGlobalOptions({ region: 'africa-south1', maxInstances: 10 });
 
 const db = () => getFirestore();
 /** Where bootstrap reads the published datasets (the Hosting site serves /data/*.json). */
 const DATA_BASE_URL = defineString('DATA_BASE_URL', { default: 'https://cottid-72d51.web.app' });
 
-type Claims = { role?: Role; firebase?: { sign_in_second_factor?: string } };
-const roleOf = (req: CallableRequest) => ((req.auth?.token as Claims | undefined)?.role ?? 'member') as Role;
-const hasTwoStep = (req: CallableRequest) => !!(req.auth?.token as Claims | undefined)?.firebase?.sign_in_second_factor;
-
-/** Staff actions need the role and a second factor (section 4). */
-function requireStaff(req: CallableRequest, min: Role) {
-  if (!req.auth) throw new HttpsError('unauthenticated', 'Sign in first.');
-  if (!hasRole(roleOf(req), min)) throw new HttpsError('permission-denied', `Needs the ${min} role.`);
-  if (!hasTwoStep(req)) throw new HttpsError('permission-denied', 'Staff actions need two-step verification. Turn it on in your account.');
-}
-
-async function audit(actor: string, action: string, target: string, before: unknown, after: unknown) {
-  await db().collection('auditLog').add({ actor, action, target, before: before ?? null, after: after ?? null, time: FieldValue.serverTimestamp() });
-}
+import { audit, requireStaff } from './review';
+export { submit, review, publishRecord, reviewQueue, myContributions, getRecord, auditList, adminStats } from './review';
 
 // ---- ensureProfile: called by the client on every sign-in ----------------------------------------
 const EnsureInput = z.object({ language: z.enum(LANGS).optional(), name: z.string().max(200).optional() }).strict();

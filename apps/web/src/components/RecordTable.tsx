@@ -1,5 +1,6 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import { Card, Csv, SearchBox, Select } from './ui';
+import { SuggestLink } from './SuggestLink';
 
 export interface Column<T> {
   label: string;
@@ -25,6 +26,7 @@ export function RecordTable<T>({
   title,
   empty = 'No records match these filters.',
   footer,
+  suggest,
 }: {
   rows: T[];
   columns: Column<T>[];
@@ -34,6 +36,8 @@ export function RecordTable<T>({
   title?: ReactNode;
   empty?: string;
   footer?: ReactNode;
+  /** Adds a "Suggest a correction" link to each row, pointing at this record. */
+  suggest?: (r: T) => { target?: string; item: string };
 }) {
   const [q, setQ] = useState('');
   const [vals, setVals] = useState<string[]>(() => filters.map((f) => f.initial ?? ''));
@@ -81,6 +85,7 @@ export function RecordTable<T>({
                     {c.label}
                   </th>
                 ))}
+                {suggest && <th className="no-print"><span className="sr-only">Corrections</span></th>}
               </tr>
             </thead>
             <tbody>
@@ -91,6 +96,11 @@ export function RecordTable<T>({
                       {c.cell(r)}
                     </td>
                   ))}
+                  {suggest && (
+                    <td className="no-print">
+                      <SuggestLink {...suggest(r)} />
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

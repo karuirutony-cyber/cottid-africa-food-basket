@@ -13,6 +13,16 @@ const staff = (path: string, titleKey: string): RouteObject => ({
   },
 });
 
+/** A staff page with its real component. */
+const staffPage = (path: string, min: 'verifier' | 'data_steward' | 'platform_admin', name: 'Dashboard' | 'ReviewQueue' | 'AuditLog'): RouteObject => ({
+  path,
+  lazy: async () => {
+    const [{ RequireRole }, admin] = await Promise.all([import('@/pages/account/Auth'), import('@/pages/admin/Admin')]);
+    const C = admin[name];
+    return { Component: () => <RequireRole min={min}><C /></RequireRole> };
+  },
+});
+
 /** A lazily loaded page: each section is its own chunk, so the first load stays small. */
 const page = (path: string, load: () => Promise<{ Component: React.ComponentType }>): RouteObject => ({ path, lazy: load });
 
@@ -98,11 +108,11 @@ export const routes: RouteObject[] = [
           placeholder('org/settings', 'page.settings'),
 
           // Contribute (M7)
-          placeholder('contribute', 'page.contribute'),
+          page('contribute', async () => ({ Component: (await import('@/pages/contribute/Contribute')).default })),
 
           // Admin (role-gated from M2; pages from M7–M9)
-          staff('admin', 'page.adminHome'),
-          staff('admin/review', 'page.adminReview'),
+          staffPage('admin', 'verifier', 'Dashboard'),
+          staffPage('admin/review', 'verifier', 'ReviewQueue'),
           staff('admin/directory', 'page.adminDirectory'),
           staff('admin/content', 'page.adminContent'),
           staff('admin/prices', 'page.adminPrices'),
@@ -112,7 +122,7 @@ export const routes: RouteObject[] = [
           staff('admin/ingest', 'page.adminIngest'),
           staff('admin/users', 'page.adminUsers'),
           staff('admin/organisations', 'page.adminOrganisations'),
-          staff('admin/audit', 'page.adminAudit'),
+          staffPage('admin/audit', 'platform_admin', 'AuditLog'),
           staff('admin/settings', 'page.adminSettings'),
 
           // System

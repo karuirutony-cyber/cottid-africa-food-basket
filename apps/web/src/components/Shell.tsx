@@ -6,6 +6,7 @@ import { TopBar } from './TopBar';
 import { SubNav } from './SubNav';
 import { Footer } from './Footer';
 import { OfflineBanner } from './OfflineBanner';
+import { SuggestLink } from './SuggestLink';
 import { loadTranslator, noteEnglish, translateTree } from '@/lib/legacyI18n';
 
 export function Shell() {
@@ -75,6 +76,11 @@ export function Shell() {
           <Outlet />
         </Suspense>
       </main>
+      {pathname !== '/contribute' && !pathname.startsWith('/admin') && (
+        <div className="wrap no-print mt-6 flex justify-end">
+          <SuggestLink />
+        </div>
+      )}
       <Footer />
       <ScrollRestoration />
     </div>

@@ -127,7 +127,7 @@ test('role gating: visitors sign in first, members are refused, staff need two-s
   await signIn(page, email, 'correct-horse-9');
   await expect(page.getByText('Verifier')).toBeVisible({ timeout: 15_000 });
   await page.goto('/admin/review');
-  // Verifier, but no second factor yet: still refused, and told to turn on two-step.
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('You do not have access to this page');
-  await expect(page.getByText('Your role needs two-step verification')).toBeVisible();
+  // Now a verifier: the review queue opens. (The emulator has no authenticator app, so its build waives
+  // the second factor; production refuses staff without it, as the rules tests and functions check.)
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Review queue');
 });

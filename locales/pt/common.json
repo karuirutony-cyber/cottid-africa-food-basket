@@ -172,5 +172,28 @@
       "platform_admin": "Administrador da plataforma",
       "super_admin": "Superadministrador"
     }
+  },
+  "contribute": {
+    "lead": "Encontrou um valor, nome ou registo errado ou em falta? Diga-nos, com uma fonte se a tiver. Um revisor verifica cada sugestão antes de qualquer alteração, e pode acompanhar o estado aqui.",
+    "signinFirst": "para sugerir uma correção, para podermos informá-lo do resultado.",
+    "about": "Sobre:",
+    "what": "O que deve mudar, e porquê?",
+    "source": "Fonte (ligação, opcional)",
+    "patch": "Novos valores propostos (opcional)",
+    "field": "Campo",
+    "value": "Novo valor",
+    "addField": "Adicionar um campo",
+    "remove": "Remover",
+    "send": "Enviar sugestão",
+    "thanks": "Obrigado. A sua sugestão está na fila de revisão.",
+    "yours": "As suas sugestões",
+    "none": "Ainda não enviou nenhuma sugestão.",
+    "reviewerNote": "Nota do revisor",
+    "status": {
+      "pending": "A aguardar revisão",
+      "approved": "Aprovada",
+      "rejected": "Não aceite",
+      "published": "Publicada"
+    }
   }
 }

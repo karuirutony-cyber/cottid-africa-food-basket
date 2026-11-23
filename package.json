@@ -17,7 +17,7 @@
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r --if-present test",
     "test:rules": "firebase emulators:exec --only firestore --project demo-cottid-rules \"vitest run --config tools/vitest.rules.config.ts\"",
-    "e2e:auth": "pnpm --filter @afb/functions build && firebase emulators:exec --only auth,firestore,functions --project demo-cottid \"pnpm --filter @afb/web e2e:emu\"",
+    "e2e:auth": "pnpm --filter @afb/functions build && firebase emulators:exec --only auth,firestore,functions --project demo-cottid \"pnpm seed:emulator && pnpm --filter @afb/web e2e:emu\"",
     "seed": "tsx tools/seed.ts",
     "seed:emulator": "tsx tools/seed.ts --project demo-cottid --emulator",
     "make-admin": "tsx tools/make-admin.ts",

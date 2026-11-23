@@ -22,3 +22,4 @@ data/legacy/
 apps/web/public/data/
 dist-emu/
 !functions/.env
+!functions/.env.demo-cottid

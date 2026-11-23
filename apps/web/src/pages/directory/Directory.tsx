@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ktf, usd, type Buyer, type ComplianceStep, type EventRec, type Supplier } from '@afb/engines';
 import { useDatasets } from '@/data/datasets';
+import { overlay, usePublished } from '@/data/published';
 import { ExtLink, optionsOf, RecordTable } from '@/components/RecordTable';
 import { BarList } from '@/components/charts';
 import { CountrySelect, FoodSelect } from '@/components/pickers';
@@ -12,8 +13,10 @@ const statusTone = (s: string) => (/^verified/i.test(s) ? 'go' : /lead|unverifie
 export function Buyers() {
   const [params] = useSearchParams();
   const { data, loading, error } = useDatasets('REG', 'TS');
+  const pub = usePublished('buyers').data;
   if (!data) return <DataState loading={loading} error={error} />;
-  const { REG, TS } = data;
+  const { TS } = data;
+  const REG = { ...data.REG, buyers: overlay(data.REG.buyers, (b) => b.ref, pub) };
   const label = (c: string) => TS.comm[c]?.label ?? (c === 'all' ? 'All staples' : c);
   const initialCountry = params.get('c') ? TS.meta.markets[params.get('c')!.toUpperCase()] : undefined;
   return (
@@ -21,6 +24,7 @@ export function Buyers() {
       <RecordTable<Buyer>
         name="buyers"
         rows={REG.buyers}
+        suggest={(r) => ({ target: `buyers/${r.ref}`, item: `${r.name} (${r.ref})` })}
         search={(r) => `${r.name} ${r.city} ${r.country} ${r.type} ${r.segment} ${r.origins} ${r.evidence}`}
         filters={[
           { label: 'Country', all: 'All countries', options: optionsOf(REG.buyers.map((b) => b.country)), match: (r, v) => r.country === v, initial: initialCountry },
@@ -47,8 +51,10 @@ export function Sellers() {
   const [mid, setMid] = useState((params.get('c') ?? 'KE').toUpperCase());
   const [food, setFood] = useState(params.get('f') ?? 'rice');
   const sellRows = useMemo(() => data?.SELL[mid]?.c[food] ?? null, [data, mid, food]);
+  const pubSup = usePublished('suppliers').data;
   if (!data) return <DataState loading={loading} error={error} />;
-  const { REG, TS, SELL, FT } = data;
+  const { TS, SELL, FT } = data;
+  const REG = { ...data.REG, suppliers: overlay(data.REG.suppliers, (s) => s.ref, pubSup) };
   const L = SELL[mid];
   const label = (c: string) => TS.comm[c]?.label ?? (c === 'all' ? 'All staples' : c);
   const d = sellRows;
@@ -82,6 +88,7 @@ export function Sellers() {
         title="Exporters and origin bodies"
         name="suppliers"
         rows={REG.suppliers}
+        suggest={(r) => ({ target: `suppliers/${r.ref}`, item: `${r.name} (${r.ref})` })}
         search={(r) => `${r.name} ${r.origin} ${r.role}`}
         filters={[
           { label: 'Origin', all: 'All origins', options: optionsOf(REG.suppliers.map((s) => s.origin)), match: (r, v) => r.origin === v },
@@ -109,6 +116,7 @@ export function Compliance() {
       <RecordTable<ComplianceStep>
         name="compliance"
         rows={REG.compliance}
+        suggest={(r) => ({ item: `compliance: ${r.country}, ${r.authority}` })}
         search={(r) => `${r.country} ${r.authority} ${r.document} ${r.when}`}
         filters={[
           { label: 'Country', all: 'All countries', options: optionsOf(REG.compliance.map((c) => c.country)), match: (r, v) => r.country === v },
@@ -139,6 +147,7 @@ export function Events() {
       <RecordTable<EventRec>
         name="events"
         rows={rows}
+        suggest={(r) => ({ item: `event: ${r.name} (${r.when})` })}
         search={(r) => `${r.name} ${r.city} ${r.country} ${r.org} ${r.why}`}
         filters={[
           { label: 'When', all: 'Upcoming and past', options: [['up', 'Upcoming'], ['past', 'Past']], match: (r, v) => (v === 'up' ? r.k >= today : r.k < today), initial: 'up' },

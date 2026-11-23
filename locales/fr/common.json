@@ -172,5 +172,28 @@
       "platform_admin": "Administrateur de la plateforme",
       "super_admin": "Super-administrateur"
     }
+  },
+  "contribute": {
+    "lead": "Vous avez repéré un chiffre, un nom ou une fiche erronés ou manquants ? Signalez-le, avec une source si possible. Un vérificateur examine chaque proposition avant toute modification, et vous pouvez en suivre l’état ici.",
+    "signinFirst": "pour proposer une correction, afin que nous puissions vous informer de la suite.",
+    "about": "Concerne :",
+    "what": "Que faut-il changer, et pourquoi ?",
+    "source": "Source (lien, facultatif)",
+    "patch": "Nouvelles valeurs proposées (facultatif)",
+    "field": "Champ",
+    "value": "Nouvelle valeur",
+    "addField": "Ajouter un champ",
+    "remove": "Retirer",
+    "send": "Envoyer la proposition",
+    "thanks": "Merci. Votre proposition est dans la file de revue.",
+    "yours": "Vos propositions",
+    "none": "Vous n’avez encore envoyé aucune proposition.",
+    "reviewerNote": "Note du vérificateur",
+    "status": {
+      "pending": "En attente de revue",
+      "approved": "Approuvée",
+      "rejected": "Non retenue",
+      "published": "Publiée"
+    }
   }
 }

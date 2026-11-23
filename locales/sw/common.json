@@ -172,5 +172,28 @@
       "platform_admin": "Msimamizi wa jukwaa",
       "super_admin": "Msimamizi mkuu"
     }
+  },
+  "contribute": {
+    "lead": "Umeona takwimu, jina au rekodi iliyokosewa au inayokosekana? Tuambie, pamoja na chanzo ukiwa nacho. Mkaguzi hukagua kila pendekezo kabla ya mabadiliko yoyote, na unaweza kufuatilia hali yake hapa.",
+    "signinFirst": "ili kupendekeza marekebisho, ili tukujulishe kinachoendelea.",
+    "about": "Kuhusu:",
+    "what": "Nini kibadilishwe, na kwa nini?",
+    "source": "Chanzo (kiungo, si lazima)",
+    "patch": "Thamani mpya zinazopendekezwa (si lazima)",
+    "field": "Sehemu",
+    "value": "Thamani mpya",
+    "addField": "Ongeza sehemu",
+    "remove": "Ondoa",
+    "send": "Tuma pendekezo",
+    "thanks": "Asante. Pendekezo lako liko kwenye foleni ya ukaguzi.",
+    "yours": "Mapendekezo yako",
+    "none": "Bado hujatuma pendekezo lolote.",
+    "reviewerNote": "Maoni ya mkaguzi",
+    "status": {
+      "pending": "Linasubiri ukaguzi",
+      "approved": "Limeidhinishwa",
+      "rejected": "Halikukubaliwa",
+      "published": "Limechapishwa"
+    }
   }
 }

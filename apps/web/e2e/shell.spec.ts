@@ -70,11 +70,14 @@ for (const path of DATA_PAGES) {
 }
 
 test('data pages are accessible', async ({ page }) => {
+  test.setTimeout(90_000);
   for (const path of ['/countries/KE', '/cost/calculator', '/directory/buyers', '/analytics/projections']) {
     await page.goto(path);
     await expect(page.locator('main .animate-pulse')).toHaveCount(0);
-    // Let lazy chunks, data and fonts settle so axe scans the finished page, not a frame mid-render.
-    await page.waitForLoadState('networkidle');
+    // Let fonts and the last render settle so axe scans the finished page, not a frame mid-render.
+    // (Not "network idle": the directory keeps a Firestore connection open for published corrections.)
+    await page.evaluate(() => document.fonts.ready);
+    await page.waitForTimeout(500);
     await expectAxeClean(page);
   }
 });

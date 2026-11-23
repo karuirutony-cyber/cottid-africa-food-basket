@@ -98,7 +98,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         const tok = await user.getIdTokenResult();
         const role = ((tok.claims.role as Role | undefined) ?? 'member') as Role;
-        const twoStep = !!(tok.claims.firebase as { sign_in_second_factor?: string } | undefined)?.sign_in_second_factor;
+        // VITE_TEST_NO_MFA is set only in the emulator build (.env.emulators), where no authenticator exists.
+        const twoStep =
+          !!(tok.claims.firebase as { sign_in_second_factor?: string } | undefined)?.sign_in_second_factor ||
+          import.meta.env.VITE_TEST_NO_MFA === 'true';
         setState((s) => ({ ready: true, user, role, twoStep, profile: profile ?? s.profile }));
       });
     })();

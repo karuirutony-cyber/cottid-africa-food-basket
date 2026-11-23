@@ -172,5 +172,28 @@
       "platform_admin": "Platform administrator",
       "super_admin": "Super administrator"
     }
+  },
+  "contribute": {
+    "lead": "Spotted a figure, name or record that is wrong or missing? Tell us, with a source if you have one. A reviewer checks every suggestion before anything changes, and you can follow its status here.",
+    "signinFirst": "to suggest a correction, so we can tell you what happens to it.",
+    "about": "About:",
+    "what": "What should change, and why?",
+    "source": "Source (link, optional)",
+    "patch": "Proposed new values (optional)",
+    "field": "Field",
+    "value": "New value",
+    "addField": "Add a field",
+    "remove": "Remove",
+    "send": "Send suggestion",
+    "thanks": "Thank you. Your suggestion is in the review queue.",
+    "yours": "Your suggestions",
+    "none": "You have not sent any suggestions yet.",
+    "reviewerNote": "Reviewer’s note",
+    "status": {
+      "pending": "Waiting for review",
+      "approved": "Approved",
+      "rejected": "Not accepted",
+      "published": "Published"
+    }
   }
 }
