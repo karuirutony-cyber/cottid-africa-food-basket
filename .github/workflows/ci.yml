@@ -24,10 +24,20 @@ jobs:
       - run: pnpm check:locales
       - run: pnpm test
       - run: pnpm build
-      - name: Playwright journeys (1280 px and 400 px, axe)
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Security rules tests (Firestore emulator)
+        run: pnpm test:rules
+      - name: Playwright journeys (1280 px and 400 px, axe, parity)
         run: |
           pnpm --filter @afb/web exec playwright install --with-deps chromium
           pnpm --filter @afb/web e2e
+      - name: Account journeys (Auth, Firestore and Functions emulators)
+        run: pnpm e2e:auth
+      - name: Seed an empty database and check every collection
+        run: pnpm exec firebase emulators:exec --only firestore --project demo-cottid "pnpm seed:emulator && pnpm seed:emulator && pnpm exec tsx tools/count-emulator.ts"
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

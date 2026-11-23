@@ -1,41 +1,51 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '@/lib/auth';
+import { listSaved, moveLocalToAccount, removeSaved, type SavedItem } from '@/lib/saved';
 import { Card, Page } from '@/components/ui';
 
-interface SavedItem {
-  kind: string;
-  title: string;
-  href: string;
-  at: string;
-}
-
-function load(): SavedItem[] {
-  try {
-    return JSON.parse(localStorage.getItem('afb-saved') ?? '[]') as SavedItem[];
-  } catch {
-    return [];
-  }
-}
-
-/** Saved views and scenarios. Kept on this device until sign-in (M2) syncs them to your account. */
+/** Saved views and scenarios: in your account when signed in, on this device otherwise. */
 export default function Saved() {
-  const [items, setItems] = useState(load);
-  const remove = (i: number) => {
-    const next = items.filter((_, j) => j !== i);
-    setItems(next);
-    try {
-      localStorage.setItem('afb-saved', JSON.stringify(next));
-    } catch {
-      /* ignore */
-    }
+  const auth = useAuth();
+  const [items, setItems] = useState<SavedItem[] | null>(null);
+  const [note, setNote] = useState('');
+  useEffect(() => {
+    if (!auth.ready) return;
+    let live = true;
+    void (async () => {
+      if (auth.user) {
+        const moved = await moveLocalToAccount(auth.user).catch(() => 0);
+        if (moved && live) setNote(`${moved} item(s) saved on this device were moved into your account.`);
+      }
+      const list = await listSaved(auth.user).catch(() => []);
+      if (live) setItems(list);
+    })();
+    return () => {
+      live = false;
+    };
+  }, [auth.ready, auth.user]);
+  const remove = async (it: SavedItem, i: number) => {
+    await removeSaved(auth.user, it, i);
+    setItems((old) => (old ?? []).filter((_, j) => j !== i));
   };
   return (
-    <Page kicker="Account" title="Saved views" lead="Scenarios and views you have saved. They are kept on this device, and work offline; once you sign in they will follow you to any device.">
+    <Page
+      kicker="Account"
+      title="Saved views"
+      lead={auth.user ? 'Scenarios and views saved to your account. They follow you to any device and open offline once loaded.' : 'Scenarios and views saved on this device. Sign in to keep them in your account and use them on any device.'}
+    >
+      {note && (
+        <p role="status" className="m-0 rounded-lg bg-[#e3f1e7] px-3 py-2 text-[#1d5e36]">
+          {note}
+        </p>
+      )}
       <Card>
-        {items.length ? (
+        {items == null ? (
+          <p className="m-0 text-muted">Loading…</p>
+        ) : items.length ? (
           <ul className="m-0 grid list-none gap-2 p-0">
             {items.map((it, i) => (
-              <li key={`${it.href}${i}`} className="flex flex-wrap items-center justify-between gap-2 border-b border-line pb-2">
+              <li key={`${it.id ?? it.href}${i}`} className="flex flex-wrap items-center justify-between gap-2 border-b border-line pb-2">
                 <span>
                   <Link to={it.href} className="font-semibold">
                     {it.title}
@@ -44,7 +54,7 @@ export default function Saved() {
                     {it.kind}, saved {new Date(it.at).toLocaleString('en-GB')}
                   </span>
                 </span>
-                <button type="button" className="btn min-h-[34px] py-1 text-[13px]" onClick={() => remove(i)}>
+                <button type="button" className="btn min-h-[34px] py-1 text-[13px]" onClick={() => void remove(it, i)}>
                   Remove
                 </button>
               </li>
@@ -53,6 +63,11 @@ export default function Saved() {
         ) : (
           <p className="m-0 text-muted">
             Nothing saved yet. Open <Link to="/analytics/projections">Projections</Link>, set a scenario and choose “Save this scenario”.
+          </p>
+        )}
+        {!auth.user && (
+          <p className="m-0 mt-3">
+            <Link to="/signin?next=/account/saved">Sign in</Link> to keep them in your account.
           </p>
         )}
       </Card>

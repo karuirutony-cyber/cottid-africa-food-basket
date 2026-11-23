@@ -3,6 +3,8 @@ import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Advisor as ADV, Forecast as F, kt, pc, sg, usdm, type Scenario, type TSData } from '@afb/engines';
 import { useDatasets } from '@/data/datasets';
+import { useAuth } from '@/lib/auth';
+import { addSaved } from '@/lib/saved';
 import { LineChart, COL, StackChart } from '@/components/charts';
 import { CountrySelect, FoodSelect } from '@/components/pickers';
 import { Card, Csv, DataState, Kpi, KpiRow, Page, Pill, Select, SourceFooter, SourceLinks } from '@/components/ui';
@@ -79,20 +81,14 @@ export function Projections() {
   const { data, loading, error } = useDatasets('TS', 'summary');
   const pr = useMemo(() => (data && data.TS.meta.markets[sel.mid] && data.TS.balance[sel.cid]?.[sel.mid] ? F.project(data.TS, sel.cid, sel.mid, sel.sc) : null), [data, sel.cid, sel.mid, sel.sc.gdp, sel.sc.pop, sel.sc.price, sel.sc.prod, sel.sc.shock, sel.sc.shockYear]); // eslint-disable-line react-hooks/exhaustive-deps
   const [saved, setSaved] = useState(false);
+  const auth = useAuth();
   if (!data) return <DataState loading={loading} error={error} />;
   const { TS } = data;
   const name = TS.meta.markets[sel.mid] ?? sel.mid;
   const food = TS.comm[sel.cid]?.label ?? sel.cid;
   const q = pr?.ok ? ADV.quality(TS, sel.cid, sel.mid) : null;
   const save = () => {
-    try {
-      const list = JSON.parse(localStorage.getItem('afb-saved') ?? '[]');
-      list.unshift({ kind: 'projection', title: `${food} in ${name}`, href: `/analytics/projections?${sel.params.toString()}`, at: new Date().toISOString() });
-      localStorage.setItem('afb-saved', JSON.stringify(list.slice(0, 50)));
-      setSaved(true);
-    } catch {
-      /* storage blocked */
-    }
+    void addSaved(auth.user, { kind: 'projection', title: `${food} in ${name}`, href: `/analytics/projections?${sel.params.toString()}` }).then(() => setSaved(true));
   };
   const best = pr?.best ?? {};
   const histYears = Object.keys(best.use ?? {}).map(Number).filter((y) => y >= 2015 && y < F.BASE_YEAR + 1);
@@ -139,7 +135,7 @@ export function Projections() {
                 ))}
               </ul>
             )}
-            <SourceFooter ids={['D1', 'D2', 'D3', 'D4', 'D6']} asOf={TS.meta.built} note="FAOSTAT, USDA PSD, IMF, UN WPP and the World Bank price outlook; Cottid Africa projection model." />
+            <SourceFooter ids={['D1', 'D2', 'D3', 'D4', 'D6', 'D7', 'K2', 'A14']} asOf={TS.meta.built} note="FAOSTAT, USDA PSD, IMF, UN WPP and the World Bank price outlook; Cottid Africa projection model." />
           </Card>
         </>
       ) : (

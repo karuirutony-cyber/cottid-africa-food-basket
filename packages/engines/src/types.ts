@@ -154,7 +154,8 @@ export interface Intervention {
   st: string;
   y0: number | null;
   y1: number | null;
-  fund?: boolean;
+  /** Funding lines: [funder, funder type, US$ million or null]. */
+  fund?: [string, string, number | null][];
 }
 export interface Call {
   name: string;

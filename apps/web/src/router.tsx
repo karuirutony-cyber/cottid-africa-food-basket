@@ -4,6 +4,15 @@ import Home from '@/pages/Home';
 import Building from '@/pages/Building';
 import { Maintenance, NotFound, Offline, RouteError } from '@/pages/SystemPage';
 
+/** Admin pages: staff only (verifier and above, with two-step verification). */
+const staff = (path: string, titleKey: string): RouteObject => ({
+  path,
+  lazy: async () => {
+    const { RequireRole } = await import('@/pages/account/Auth');
+    return { Component: () => <RequireRole min="verifier"><Building titleKey={titleKey} /></RequireRole> };
+  },
+});
+
 /** A lazily loaded page: each section is its own chunk, so the first load stays small. */
 const page = (path: string, load: () => Promise<{ Component: React.ComponentType }>): RouteObject => ({ path, lazy: load });
 
@@ -74,10 +83,10 @@ export const routes: RouteObject[] = [
           page('about/terms', async () => { const A = (await import('@/pages/about/About')).default; return { Component: () => <A page="terms" /> }; }),
 
           // Account (M2)
-          placeholder('signin', 'page.signin'),
-          placeholder('signup', 'page.signup'),
-          placeholder('reset', 'page.reset'),
-          placeholder('account', 'page.account'),
+          page('signin', async () => ({ Component: (await import('@/pages/account/Auth')).SignIn })),
+          page('signup', async () => ({ Component: (await import('@/pages/account/Auth')).SignUp })),
+          page('reset', async () => ({ Component: (await import('@/pages/account/Auth')).Reset })),
+          page('account', async () => ({ Component: (await import('@/pages/account/Auth')).Account })),
           page('account/saved', async () => ({ Component: (await import('@/pages/account/Saved')).default })),
           placeholder('account/alerts', 'page.alerts'),
           placeholder('account/api-keys', 'page.apiKeys'),
@@ -92,19 +101,19 @@ export const routes: RouteObject[] = [
           placeholder('contribute', 'page.contribute'),
 
           // Admin (role-gated from M2; pages from M7–M9)
-          placeholder('admin', 'page.adminHome'),
-          placeholder('admin/review', 'page.adminReview'),
-          placeholder('admin/directory', 'page.adminDirectory'),
-          placeholder('admin/content', 'page.adminContent'),
-          placeholder('admin/prices', 'page.adminPrices'),
-          placeholder('admin/duties', 'page.adminDuties'),
-          placeholder('admin/sources', 'page.adminSources'),
-          placeholder('admin/datasets', 'page.adminDatasets'),
-          placeholder('admin/ingest', 'page.adminIngest'),
-          placeholder('admin/users', 'page.adminUsers'),
-          placeholder('admin/organisations', 'page.adminOrganisations'),
-          placeholder('admin/audit', 'page.adminAudit'),
-          placeholder('admin/settings', 'page.adminSettings'),
+          staff('admin', 'page.adminHome'),
+          staff('admin/review', 'page.adminReview'),
+          staff('admin/directory', 'page.adminDirectory'),
+          staff('admin/content', 'page.adminContent'),
+          staff('admin/prices', 'page.adminPrices'),
+          staff('admin/duties', 'page.adminDuties'),
+          staff('admin/sources', 'page.adminSources'),
+          staff('admin/datasets', 'page.adminDatasets'),
+          staff('admin/ingest', 'page.adminIngest'),
+          staff('admin/users', 'page.adminUsers'),
+          staff('admin/organisations', 'page.adminOrganisations'),
+          staff('admin/audit', 'page.adminAudit'),
+          staff('admin/settings', 'page.adminSettings'),
 
           // System
           { path: 'offline', element: <Offline /> },

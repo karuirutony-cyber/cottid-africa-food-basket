@@ -81,7 +81,7 @@ export default function Compare() {
             </tbody>
           </table>
         </div>
-        <SourceFooter ids={['D1', 'D5']} asOf={summary.built} note="Macro indicators: World Bank WDI and UN WPP." />
+        <SourceFooter ids={['D1', 'D3', 'D4', 'D5']} asOf={summary.built} note="Macro indicators: World Bank WDI and UN WPP." />
       </Card>
     </Page>
   );

@@ -66,10 +66,11 @@ Do these once, in the Firebase console for `cottid-72d51`:
 
 1. **Firestore**: create the database in **africa-south1** (production mode), if it does not exist yet. *(Needed from M1.)*
 2. **Authentication → Settings → Authorised domains**: add the Hosting domains (`cottid-72d51.web.app`, the `next` preview channel domain, and any custom domain). *(M2.)*
-3. **Authentication → Sign-in method**: enable Google and Email/Password; enable **TOTP multi-factor authentication**. *(M2.)*
-4. **App Check**: register the web app with reCAPTCHA Enterprise. *(M10.)*
-5. **Extensions**: install **Trigger Email**. *(M9.)*
-6. **Secret Manager**: store `COMTRADE_KEY`. *(M9.)*
+3. **Authentication → Sign-in method**: enable Google and Email/Password. TOTP multi-factor needs **Identity Platform** (Authentication → Settings → upgrade), then enable it with `gcloud` or the REST call in the Firebase docs ("Add TOTP multi-factor authentication"). *(M2.)*
+4. **Blaze plan**: Cloud Functions (`ensureProfile`, `syncRoleClaim`, `bootstrap`) need the pay-as-you-go plan. Deploy them with `pnpm firebase deploy --only functions,firestore`. *(M1–M2.)*
+5. **App Check**: register the web app with reCAPTCHA Enterprise. *(M10.)*
+6. **Extensions**: install **Trigger Email**. *(M9.)*
+7. **Secret Manager**: store `COMTRADE_KEY`. *(M9.)*
 
 ### Deploying from CI
 
@@ -81,9 +82,28 @@ English, French, Portuguese, Arabic (laid out right to left) and Swahili. String
 
 **To add a language:** add its code to `LANGS` in `packages/schema/src/index.ts`, copy `locales/en` to `locales/<code>` and translate every value, add the language's own name to `apps/web/src/components/LanguageSelect.tsx` and its locale to `apps/web/src/lib/format.ts`, then run `pnpm check:locales`.
 
-## Making the first admin
+## Firestore: seeding and roles
 
-From M1: sign in once on the site, then run `pnpm make-admin you@example.com`.
+Collections create themselves; nothing is made by hand.
+
+- **On first sign-in** the client calls the `ensureProfile` function, which creates `users/{uid}` (role `member`) and, if missing, `settings/platform` with defaults.
+- **Seeding** builds every reference collection (countries, foods, series, nutrition, trade, projections, prices, fx, duties, rate cards, buyers, suppliers, compliance, events, calls, policies, interventions, funders, sources and `meta/dataset`, 4,633 documents). It writes in batches of 400 with merge, so it can be rerun safely, and logs the count per collection.
+  - Against the live project: run `gcloud auth application-default login` once (or set `GOOGLE_APPLICATION_CREDENTIALS` to a service-account key file kept outside the repository), then `pnpm seed`.
+  - Against the emulators: `pnpm emulators` in one terminal, `pnpm seed:emulator` in another.
+  - `pnpm seed -- --dry-run` builds and counts the documents without writing.
+  - The `bootstrap` callable function does the same for a platform admin (with two-step), reading the published `/data/*.json` from Hosting.
+- **Roles** live in `users/{uid}.role` and are mirrored to a custom claim by the `syncRoleClaim` trigger, so rules read `request.auth.token.role`. Staff roles (verifier and above) must use two-step verification (TOTP); rules and functions refuse staff actions without it.
+
+### Making the first admin
+
+1. Sign in once on the site (Google or e-mail).
+2. Run `pnpm make-admin you@example.com` (default role `super_admin`; `--role data_steward` etc. for others). It uses the same credentials as `pnpm seed`, and writes an audit entry.
+3. Sign out and in again, then turn on two-step verification at `/account`.
+
+### Tests for security and sign-in
+
+- `pnpm test:rules`: one test per permission in the security rules, on the Firestore emulator (22 tests).
+- `pnpm e2e:auth`: sign-up with e-mail verification, sign-in, password reset and role gating, in a browser against the Auth, Firestore and Functions emulators, at 1280 px and 400 px.
 
 ---
 

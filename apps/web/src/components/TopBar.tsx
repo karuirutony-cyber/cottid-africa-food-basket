@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { CottidMark, ShukaStrip } from '@afb/ui';
 import { SECTIONS, sectionFor } from '@/sections';
 import { LanguageSelect } from './LanguageSelect';
+import { useAuth } from '@/lib/auth';
 
 export function TopBar() {
   const { t } = useTranslation();
@@ -11,6 +12,10 @@ export function TopBar() {
   const [open, setOpen] = useState(false);
   const menuId = useId();
   const current = sectionFor(pathname);
+  const auth = useAuth();
+  const who = auth.user ? (auth.profile?.name || auth.user.displayName || auth.user.email || t('page.account')) : null;
+  const accountLink = auth.user ? '/account' : '/signin';
+  const accountLabel = who ?? t('action.signIn');
 
   // Close the mobile menu after navigating.
   useEffect(() => setOpen(false), [pathname]);
@@ -51,8 +56,8 @@ export function TopBar() {
 
         <div className="ms-auto flex shrink-0 items-center gap-1.5 sm:gap-2">
           <LanguageSelect />
-          <Link to="/signin" className="btn hidden sm:inline-flex">
-            {t('action.signIn')}
+          <Link to={accountLink} className="btn hidden max-w-[180px] no-underline sm:inline-flex">
+            <span className="truncate" data-no-tr>{accountLabel}</span>
           </Link>
           <button
             type="button"
@@ -77,8 +82,8 @@ export function TopBar() {
         <ul className="wrap m-0 grid list-none grid-cols-1 gap-1 py-3 sm:grid-cols-2">
           {sectionLinks}
           <li className="sm:hidden">
-            <NavLink to="/signin" className="block rounded-full px-3 py-2 text-[14.5px] font-semibold text-ink">
-              {t('action.signIn')}
+            <NavLink to={accountLink} className="block rounded-full px-3 py-2 text-[14.5px] font-semibold text-ink">
+              {accountLabel}
             </NavLink>
           </li>
         </ul>

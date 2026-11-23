@@ -1,11 +1,113 @@
 rules_version = '2';
 
-// M0: default deny everywhere. M1 replaces this with the full role model
-// (public reference reads, own profile, submissions, staff writes) and a test per rule.
+// Africa Food Basket: who can read and write what (section 4 of the build prompt).
+// Roles live in users/{uid}.role and are mirrored to the custom claim `role` by the syncRoleClaim
+// function, so rules read request.auth.token.role without an extra document read.
+// Staff (verifier and above) must have signed in with a second factor for any privileged action.
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if false;
+
+    // ---- Helpers ------------------------------------------------------------------------------
+    function RANKS() {
+      return {'member': 1, 'contributor': 2, 'verifier': 3, 'content_editor': 4,
+              'data_steward': 5, 'platform_admin': 6, 'super_admin': 7};
     }
+    function signedIn() { return request.auth != null; }
+    function rank() {
+      return !signedIn() ? 0
+        : (request.auth.token.role is string && request.auth.token.role in RANKS())
+          ? RANKS()[request.auth.token.role] : 1;
+    }
+    function twoStep() {
+      return signedIn() && 'sign_in_second_factor' in request.auth.token.firebase;
+    }
+    // A staff role at or above `min`, signed in with two-step verification.
+    function staff(min) { return rank() >= RANKS()[min] && twoStep(); }
+    function isSelf(uid) { return signedIn() && request.auth.uid == uid; }
+    function onlyChanges(keys) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys);
+    }
+
+    // ---- Public reference data: anyone reads; data stewards (or functions) write ----------------
+    match /meta/{id}           { allow read: if true; allow write: if staff('data_steward'); }
+    match /countries/{id}      { allow read: if true; allow write: if staff('data_steward'); }
+    match /foods/{id}          { allow read: if true; allow write: if staff('data_steward'); }
+    match /series/{id}         { allow read: if true; allow write: if staff('data_steward'); }
+    match /nutrition/{id}      { allow read: if true; allow write: if staff('data_steward'); }
+    match /trade/{id}          { allow read: if true; allow write: if staff('data_steward'); }
+    match /projections/{id}    { allow read: if true; allow write: if staff('data_steward'); }
+    match /prices/{id}         { allow read: if true; allow write: if staff('data_steward'); }
+    match /fx/{id}             { allow read: if true; allow write: if staff('data_steward'); }
+    match /duties/{id}         { allow read: if true; allow write: if staff('data_steward'); }
+    match /rateCards/{id}      { allow read: if true; allow write: if staff('data_steward'); }
+    match /buyers/{id}         { allow read: if true; allow write: if staff('data_steward'); }
+    match /suppliers/{id}      { allow read: if true; allow write: if staff('data_steward'); }
+    match /compliance/{id}     { allow read: if true; allow write: if staff('data_steward'); }
+    match /events/{id}         { allow read: if true; allow write: if staff('data_steward'); }
+    match /calls/{id}          { allow read: if true; allow write: if staff('data_steward'); }
+    match /policies/{id}       { allow read: if true; allow write: if staff('data_steward'); }
+    match /interventions/{id}  { allow read: if true; allow write: if staff('data_steward'); }
+    match /funders/{id}        { allow read: if true; allow write: if staff('data_steward'); }
+    match /sources/{id}        { allow read: if true; allow write: if staff('data_steward'); }
+    match /datasets/{id}       { allow read: if true; allow write: if false; } // functions only
+
+    // Platform settings: public (feature flags, languages); platform admins change them.
+    match /settings/{id}       { allow read: if true; allow write: if staff('platform_admin'); }
+
+    // ---- Users ------------------------------------------------------------------------------------
+    match /users/{uid} {
+      allow read: if isSelf(uid) || staff('platform_admin');
+      // Create your own profile, only as a member, with your own e-mail.
+      allow create: if isSelf(uid)
+        && request.resource.data.role == 'member'
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.keys().hasOnly(['name', 'email', 'role', 'org', 'language', 'createdAt', 'lastSeen'])
+        && request.resource.data.createdAt == request.time;
+      // Change your own name, organisation, language and last-seen; never role, e-mail or createdAt.
+      allow update: if (isSelf(uid) && onlyChanges(['name', 'org', 'language', 'lastSeen']))
+        || (staff('platform_admin') && onlyChanges(['role', 'org']) && request.resource.data.role in RANKS());
+      allow delete: if false;
+
+      match /saved/{id}  { allow read, write: if isSelf(uid); }
+      match /alerts/{id} { allow read, write: if isSelf(uid); }
+    }
+
+    // ---- Organisations: members read; changes go through functions -------------------------------
+    match /organisations/{orgId} {
+      allow read: if signedIn() && exists(/databases/$(database)/documents/organisations/$(orgId)/members/$(request.auth.uid));
+      allow write: if false;
+      match /members/{uid} {
+        allow read: if signedIn() && exists(/databases/$(database)/documents/organisations/$(orgId)/members/$(request.auth.uid));
+        allow write: if false;
+      }
+      match /invites/{id} { allow read, write: if false; }
+    }
+
+    // ---- Submissions: suggestions and corrections ------------------------------------------------
+    match /submissions/{id} {
+      allow create: if signedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.status == 'pending'
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0
+        && request.resource.data.text.size() <= 4000
+        && request.resource.data.keys().hasOnly(['uid', 'target', 'text', 'sourceUrl', 'status', 'createdAt', 'page', 'item']);
+      allow read: if (signedIn() && resource.data.uid == request.auth.uid) || staff('verifier');
+      allow update: if staff('verifier') && onlyChanges(['status', 'reviewer', 'reviewedAt', 'note'])
+        && request.resource.data.status in ['pending', 'approved', 'rejected', 'published'];
+      allow delete: if false;
+    }
+
+    // ---- API keys and audit: written by functions only -------------------------------------------
+    match /apiKeys/{hash} {
+      allow read: if signedIn() && resource.data.owner == request.auth.uid;
+      allow write: if false;
+    }
+    match /auditLog/{id} {
+      allow read: if staff('platform_admin');
+      allow write: if false;
+    }
+
+    // Everything else: denied.
   }
 }

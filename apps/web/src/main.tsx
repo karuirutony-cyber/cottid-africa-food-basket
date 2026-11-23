@@ -7,6 +7,7 @@ import '@fontsource-variable/figtree/index.css';
 import './styles.css';
 import { initI18n } from '@/lib/i18n';
 import { registerPwa } from '@/lib/pwa';
+import { AuthProvider } from '@/lib/auth';
 import { createRouter } from '@/router';
 
 const queryClient = new QueryClient({
@@ -24,7 +25,9 @@ void initI18n().then(() => {
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
       <QueryClientProvider client={queryClient}>
-        <RouterProvider router={createRouter()} future={{ v7_startTransition: true }} />
+        <AuthProvider>
+          <RouterProvider router={createRouter()} future={{ v7_startTransition: true }} />
+        </AuthProvider>
       </QueryClientProvider>
     </StrictMode>,
   );

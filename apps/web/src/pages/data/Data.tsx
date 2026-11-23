@@ -202,7 +202,7 @@ export function Explorer() {
                 </tbody>
               </table>
             </div>
-            <SourceFooter ids={kind === 'macro' ? 'D3' : kind === 'prices' ? 'D4' : ['D1', 'D2']} asOf={TS.meta.built} />
+            <SourceFooter ids={kind === 'macro' ? ['D3', 'D4', 'D7'] : kind === 'prices' ? ['K1', 'K2'] : ['D1', 'D2', 'D5', 'D6']} asOf={TS.meta.built} />
           </Card>
         </>
       ) : (

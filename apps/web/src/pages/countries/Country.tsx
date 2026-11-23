@@ -353,6 +353,7 @@ function MacroCard({ TS, mid }: { TS: TSData; mid: string }) {
           </tbody>
         </table>
       </div>
+      <SourceFooter ids={['D3', 'D4', 'D7']} asOf={TS.meta.built} note="WDI: World Bank World Development Indicators; WPP: UN World Population Prospects; IMF: World Economic Outlook." />
     </Card>
   );
 }

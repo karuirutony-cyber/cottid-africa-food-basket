@@ -20,3 +20,5 @@ data/legacy/
 # emulator exports
 .emulator-data/
 apps/web/public/data/
+dist-emu/
+!functions/.env

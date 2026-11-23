@@ -57,7 +57,7 @@ function Pickers({ c, market = true }: { c: ReturnType<typeof useCost>; market?:
 }
 
 const costFooter = (LIB: any) => (
-  <SourceFooter ids={['S5', 'A1']} asOf={LIB.meta.date} note={`${LIB.meta.costNote} US$ per tonne.`} />
+  <SourceFooter ids={['A3', 'A10', 'D8']} asOf={LIB.meta.date} note={`${LIB.meta.costNote} US$ per tonne.`} />
 );
 
 /** Cheapest origin for every market: the legacy overview matrix. */
@@ -269,7 +269,7 @@ export function Calculator() {
               </table>
             </Card>
           </div>
-          <SourceFooter ids={[origin.grades.find((g: any) => g.id === gradeId)?.src, dest.regimes?.find((x: any) => x.id === regimeId)?.src, 'A1'].filter(Boolean)} asOf={c.LIB.meta.date} note={c.LIB.meta.costNote} />
+          <SourceFooter ids={[origin.grades.find((g: any) => g.id === gradeId)?.src, dest.regimes?.find((x: any) => x.id === regimeId)?.src, 'A3'].filter(Boolean)} asOf={c.LIB.meta.date} note={c.LIB.meta.costNote} />
         </>
       ) : (
         <Card>

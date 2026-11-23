@@ -5,6 +5,7 @@ import { act } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { routerFuture, routes } from './router';
 import i18n, { initI18n, setLanguage } from './lib/i18n';
+import { AuthProvider } from './lib/auth';
 
 beforeAll(async () => {
   await initI18n();
@@ -16,7 +17,9 @@ function renderAt(path: string) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={client}>
-      <RouterProvider router={router} future={{ v7_startTransition: true }} />
+      <AuthProvider>
+        <RouterProvider router={router} future={{ v7_startTransition: true }} />
+      </AuthProvider>
     </QueryClientProvider>,
   );
 }

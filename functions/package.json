@@ -8,7 +8,7 @@
     "node": "20"
   },
   "scripts": {
-    "build": "esbuild src/index.ts --bundle --platform=node --target=node20 --format=esm --outfile=lib/index.js --packages=external --alias:@afb/schema=../packages/schema/src/index.ts --alias:@afb/engines=../packages/engines/src/index.ts",
+    "build": "esbuild src/index.ts --bundle --platform=node --target=node20 --format=esm --outfile=lib/index.js --packages=external --alias:@afb/schema=../packages/schema/src/index.ts --alias:@afb/engines=../packages/engines/src/index.ts --external:firebase-admin --external:firebase-functions --external:zod",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests"
   },

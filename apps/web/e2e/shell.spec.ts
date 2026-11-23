@@ -73,6 +73,8 @@ test('data pages are accessible', async ({ page }) => {
   for (const path of ['/countries/KE', '/cost/calculator', '/directory/buyers', '/analytics/projections']) {
     await page.goto(path);
     await expect(page.locator('main .animate-pulse')).toHaveCount(0);
+    // Let lazy chunks, data and fonts settle so axe scans the finished page, not a frame mid-render.
+    await page.waitForLoadState('networkidle');
     await expectAxeClean(page);
   }
 });
