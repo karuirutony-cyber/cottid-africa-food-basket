@@ -1,4 +1,5 @@
 import { useMemo, useState, type ReactNode } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Card, Csv, SearchBox, Select } from './ui';
 import { SuggestLink } from './SuggestLink';
 
@@ -39,7 +40,9 @@ export function RecordTable<T>({
   /** Adds a "Suggest a correction" link to each row, pointing at this record. */
   suggest?: (r: T) => { target?: string; item: string };
 }) {
-  const [q, setQ] = useState('');
+  // A search link (?q=...) opens the list already filtered to the record.
+  const [params] = useSearchParams();
+  const [q, setQ] = useState(params.get('q') ?? '');
   const [vals, setVals] = useState<string[]>(() => filters.map((f) => f.initial ?? ''));
   const shown = useMemo(() => {
     const words = q.trim().toLowerCase().split(/\s+/).filter(Boolean);

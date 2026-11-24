@@ -10,7 +10,8 @@
     "closeMenu": "Fermer le menu",
     "sections": "Sections de la plateforme",
     "pages": "Pages de cette section",
-    "language": "Langue"
+    "language": "Langue",
+    "search": "Rechercher"
   },
   "section": {
     "home": "Accueil",
@@ -256,6 +257,30 @@
       "org_member": "Membre",
       "org_analyst": "Analyste",
       "org_admin": "Administrateur"
+    }
+  },
+  "search": {
+    "kicker": "Recherche",
+    "title": "Rechercher sur la plateforme",
+    "lead": "Pays, aliments, acheteurs, fournisseurs, étapes de conformité, événements, politiques, programmes, appels et sources, en un seul endroit.",
+    "label": "Que cherchez-vous ?",
+    "placeholder": "Par exemple : Kenya, riz, Capwell, CAADP, FAOSTAT",
+    "shortcut": "Astuce : appuyez sur Ctrl+K (ou /) sur n’importe quelle page pour rechercher.",
+    "count": "{{n}} résultats",
+    "none": "Aucun résultat. Essayez des mots moins nombreux ou plus courts.",
+    "more": "et {{n}} autres : affinez votre recherche pour les voir.",
+    "group": {
+      "pages": "Pages",
+      "countries": "Pays",
+      "foods": "Aliments",
+      "buyers": "Acheteurs",
+      "suppliers": "Fournisseurs et organismes d’origine",
+      "compliance": "Étapes de conformité",
+      "events": "Événements",
+      "policies": "Politiques et accords",
+      "interventions": "Programmes",
+      "calls": "Appels à propositions",
+      "sources": "Sources"
     }
   }
 }

@@ -1,5 +1,5 @@
 import { Suspense, useEffect, useRef } from 'react';
-import { Outlet, ScrollRestoration, useLocation } from 'react-router-dom';
+import { Outlet, ScrollRestoration, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { sectionFor } from '@/sections';
 import { TopBar } from './TopBar';
@@ -51,6 +51,21 @@ export function Shell() {
       if (raf) cancelAnimationFrame(raf);
     };
   }, [i18n.language]);
+
+  // Ctrl+K (or Cmd+K), or "/" outside a text field, opens search.
+  const navigate = useNavigate();
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement | null;
+      const typing = !!el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName));
+      if (((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') || (e.key === '/' && !typing)) {
+        e.preventDefault();
+        navigate('/search');
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [navigate]);
 
   // After client-side navigation, move focus to the main region so screen readers announce the new page.
   useEffect(() => {

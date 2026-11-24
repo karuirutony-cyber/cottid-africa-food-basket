@@ -100,6 +100,8 @@ export const routes: RouteObject[] = [
           page('org/members', async () => ({ Component: (await import('@/pages/org/Org')).OrgMembers })),
           page('org/settings', async () => ({ Component: (await import('@/pages/org/Org')).OrgSettings })),
 
+          page('search', async () => ({ Component: (await import('@/pages/Search')).default })),
+
           // Contribute (M7)
           page('contribute', async () => ({ Component: (await import('@/pages/contribute/Contribute')).default })),
 

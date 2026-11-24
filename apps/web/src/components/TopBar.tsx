@@ -55,6 +55,12 @@ export function TopBar() {
         </nav>
 
         <div className="ms-auto flex shrink-0 items-center gap-1.5 sm:gap-2">
+          <Link to="/search" className="btn px-2.5 no-underline" aria-label={t('a11y.search')} title={` (Ctrl+K)`}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true" focusable="false">
+              <circle cx="11" cy="11" r="7" />
+              <path d="M20 20l-3.5-3.5" />
+            </svg>
+          </Link>
           <LanguageSelect />
           <Link to={accountLink} className="btn hidden max-w-[180px] no-underline sm:inline-flex">
             <span className="truncate" data-no-tr>{accountLabel}</span>

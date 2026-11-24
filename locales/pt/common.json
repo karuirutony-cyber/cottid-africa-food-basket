@@ -10,7 +10,8 @@
     "closeMenu": "Fechar menu",
     "sections": "Secções da plataforma",
     "pages": "Páginas desta secção",
-    "language": "Idioma"
+    "language": "Idioma",
+    "search": "Pesquisar"
   },
   "section": {
     "home": "Início",
@@ -256,6 +257,30 @@
       "org_member": "Membro",
       "org_analyst": "Analista",
       "org_admin": "Administrador"
+    }
+  },
+  "search": {
+    "kicker": "Pesquisa",
+    "title": "Pesquisar na plataforma",
+    "lead": "Países, alimentos, compradores, fornecedores, etapas de conformidade, eventos, políticas, programas, convites e fontes, num só lugar.",
+    "label": "O que procura?",
+    "placeholder": "Por exemplo: Quénia, arroz, Capwell, CAADP, FAOSTAT",
+    "shortcut": "Dica: prima Ctrl+K (ou /) em qualquer página para pesquisar.",
+    "count": "{{n}} resultados",
+    "none": "Nada corresponde. Experimente menos palavras ou palavras mais curtas.",
+    "more": "e mais {{n}}: refine a pesquisa para os ver.",
+    "group": {
+      "pages": "Páginas",
+      "countries": "Países",
+      "foods": "Alimentos",
+      "buyers": "Compradores",
+      "suppliers": "Fornecedores e organismos de origem",
+      "compliance": "Etapas de conformidade",
+      "events": "Eventos",
+      "policies": "Políticas e acordos",
+      "interventions": "Programas",
+      "calls": "Convites à apresentação de propostas",
+      "sources": "Fontes"
     }
   }
 }

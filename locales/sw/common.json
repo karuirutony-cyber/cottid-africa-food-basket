@@ -10,7 +10,8 @@
     "closeMenu": "Funga menyu",
     "sections": "Sehemu za jukwaa",
     "pages": "Kurasa za sehemu hii",
-    "language": "Lugha"
+    "language": "Lugha",
+    "search": "Tafuta"
   },
   "section": {
     "home": "Mwanzo",
@@ -256,6 +257,30 @@
       "org_member": "Mwanachama",
       "org_analyst": "Mchambuzi",
       "org_admin": "Msimamizi"
+    }
+  },
+  "search": {
+    "kicker": "Utafutaji",
+    "title": "Tafuta kwenye jukwaa",
+    "lead": "Nchi, vyakula, wanunuzi, wauzaji, hatua za uzingatiaji, matukio, sera, programu, miito na vyanzo, mahali pamoja.",
+    "label": "Unatafuta nini?",
+    "placeholder": "Kwa mfano: Kenya, mchele, Capwell, CAADP, FAOSTAT",
+    "shortcut": "Kidokezo: bonyeza Ctrl+K (au /) kwenye ukurasa wowote kutafuta.",
+    "count": "matokeo {{n}}",
+    "none": "Hakuna kinacholingana. Jaribu maneno machache au mafupi zaidi.",
+    "more": "na mengine {{n}}: boresha utafutaji wako kuyaona.",
+    "group": {
+      "pages": "Kurasa",
+      "countries": "Nchi",
+      "foods": "Vyakula",
+      "buyers": "Wanunuzi",
+      "suppliers": "Wauzaji na taasisi za asili",
+      "compliance": "Hatua za uzingatiaji",
+      "events": "Matukio",
+      "policies": "Sera na mikataba",
+      "interventions": "Programu",
+      "calls": "Miito ya mapendekezo",
+      "sources": "Vyanzo vya takwimu"
     }
   }
 }

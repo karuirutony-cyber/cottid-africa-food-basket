@@ -91,6 +91,20 @@ test('data pages are accessible', async ({ page }) => {
   }
 });
 
+test('global search finds records and opens them pre-filtered', async ({ page }) => {
+  await page.goto('/countries');
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  await page.keyboard.press('Control+k');
+  await expect(page).toHaveURL(/\/search$/);
+  await page.getByRole('searchbox', { name: 'What are you looking for?' }).fill('capwell');
+  await expect(page.getByRole('status').filter({ hasText: /\d+ results/ })).toBeVisible();
+  await page.getByRole('link', { name: 'Capwell Industries Ltd' }).click();
+  await expect(page).toHaveURL(/\/directory\/buyers\?q=Capwell/);
+  await expect(page.getByRole('status').filter({ hasText: /^1 of 161 shown$/ })).toBeVisible();
+  await page.goto('/search?q=kenya');
+  await expect(page.getByRole('link', { name: 'Kenya', exact: true })).toBeVisible();
+  await expectAxeClean(page);
+});
 test('unknown pages show 404', async ({ page }) => {
   await page.goto('/no-such-page');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Page not found');
