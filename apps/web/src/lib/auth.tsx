@@ -42,6 +42,47 @@ interface AuthApi extends AuthState {
   needsTwoStep: boolean;
 }
 
+
+/**
+ * Makes sure users/{uid} exists. The ensureProfile function does it (and creates settings/platform);
+ * if the function is not deployed or not reachable, the client creates the member profile itself,
+ * which the security rules allow (own profile, role member, own e-mail, server timestamps).
+ */
+async function ensureProfileDoc(user: User, extra: { name?: string; language?: string }): Promise<Profile | null> {
+  const { functions, db } = await getFirebase();
+  try {
+    const { httpsCallable } = await import('firebase/functions');
+    const res = await httpsCallable<{ name?: string; language?: string }, { profile: Profile }>(functions, 'ensureProfile')(extra);
+    return res.data.profile;
+  } catch (e) {
+    console.info('ensureProfile function unavailable; creating the profile from the client', (e as { code?: string }).code ?? e);
+  }
+  try {
+    const fs = await import('firebase/firestore');
+    const ref = fs.doc(db, 'users', user.uid);
+    const snap = await fs.getDoc(ref);
+    if (!snap.exists()) {
+      await fs.setDoc(ref, {
+        name: extra.name ?? user.displayName ?? '',
+        email: user.email ?? '',
+        role: 'member',
+        org: null,
+        language: extra.language ?? 'en',
+        createdAt: fs.serverTimestamp(),
+        lastSeen: fs.serverTimestamp(),
+      });
+    } else {
+      const fill = extra.name && !snap.get('name') ? { name: extra.name } : {};
+      await fs.updateDoc(ref, { lastSeen: fs.serverTimestamp(), ...fill });
+    }
+    const d = (await fs.getDoc(ref)).data();
+    return d ? ({ name: d.name, email: d.email, role: d.role, org: d.org ?? null, language: d.language } as Profile) : null;
+  } catch (e) {
+    console.warn('Could not create the profile in Firestore', e);
+    return null;
+  }
+}
+
 const Ctx = createContext<AuthApi | null>(null);
 const HINT = 'afb-had-session';
 
@@ -64,10 +105,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     let off = () => {};
     void (async () => {
-      const { auth, functions } = await getFirebase();
+      const { auth } = await getFirebase();
       const { onIdTokenChanged } = await import('firebase/auth');
-      const { httpsCallable } = await import('firebase/functions');
-      const ensure = httpsCallable<{ language?: string }, { created: boolean; profile: Profile }>(functions, 'ensureProfile');
       let ensuredFor: string | null = null;
       off = onIdTokenChanged(auth, async (user) => {
         if (!user) {
@@ -87,14 +126,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         let profile: Profile | null = null;
         if (ensuredFor !== user.uid) {
           ensuredFor = user.uid;
-          try {
-            const lang = document.documentElement.lang || 'en';
-            profile = (await ensure({ language: lang })).data.profile;
-            // A new profile gets its role claim from syncRoleClaim; refresh once to pick it up.
-            await user.getIdToken(true).catch(() => undefined);
-          } catch (e) {
-            console.warn('ensureProfile failed', e);
-          }
+          profile = await ensureProfileDoc(user, { language: document.documentElement.lang || 'en' });
+          // A new profile gets its role claim from syncRoleClaim; refresh once to pick it up.
+          await user.getIdToken(true).catch(() => undefined);
         }
         const tok = await user.getIdTokenResult();
         const role = ((tok.claims.role as Role | undefined) ?? 'member') as Role;
@@ -149,10 +183,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { auth, mod } = await withAuth();
         const cred = await mod.createUserWithEmailAndPassword(auth, email, password);
         await mod.updateProfile(cred.user, { displayName: name });
-        const { functions } = await getFirebase();
-        const { httpsCallable } = await import('firebase/functions');
-        const res = await httpsCallable<{ name: string }, { profile: Profile }>(functions, 'ensureProfile')({ name });
-        setState((s) => ({ ...s, profile: res.data.profile }));
+        const profile = await ensureProfileDoc(cred.user, { name, language: document.documentElement.lang || 'en' });
+        if (profile) setState((s) => ({ ...s, profile }));
         await mod.sendEmailVerification(cred.user, { url: `${location.origin}/account` });
       },
       async resetPassword(email) {

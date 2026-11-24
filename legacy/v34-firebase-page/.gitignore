@@ -1,6 +1,0 @@
-node_modules/
-serviceAccount.json
-public/index.html
-public/fire.js
-.firebase/
-*.log

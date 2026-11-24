@@ -3,7 +3,8 @@
  * Sets that user's role in users/{uid} and mirrors it to the custom claim. The user must have signed
  * in once. They sign out and back in (or wait up to an hour) for the new claim to reach their token.
  */
-import { initializeApp, applicationDefault } from 'firebase-admin/app';
+import { initializeApp } from 'firebase-admin/app';
+import { adminCredential, explain } from './admin-credential';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 
@@ -21,7 +22,7 @@ if (!email || !ROLES.includes(role)) {
   process.exit(1);
 }
 const emu = process.env.FIRESTORE_EMULATOR_HOST || process.env.FIREBASE_AUTH_EMULATOR_HOST;
-initializeApp(emu ? { projectId } : { projectId, credential: applicationDefault() });
+initializeApp(emu ? { projectId } : { projectId, credential: adminCredential().credential });
 
 try {
   const user = await getAuth().getUserByEmail(email);
@@ -43,6 +44,6 @@ try {
     console.log('Staff roles must enrol two-step verification (TOTP) at /account before staff actions work.');
 } catch (e) {
   const code = (e as { code?: string }).code;
-  console.error(code === 'auth/user-not-found' ? `No account for ${email}: sign in on the site once first.` : (e as Error).message);
+  console.error(code === 'auth/user-not-found' ? `No account for ${email}: sign in on the site once first.` : explain(e));
   process.exit(1);
 }

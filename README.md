@@ -15,7 +15,8 @@ This repository is the production rebuild of the single-page prototype in `legac
 | `packages/ui` | Brand tokens and craft patterns (shuka, kiondo, heritage mosaic, the Cottid mark) |
 | `tools` | Data and i18n tools (`migrate-i18n`, `check-locales`; `extract`, `seed`, `make-admin` from M1) |
 | `locales/<lang>` | Interface strings: `common.json` (app), `legacy.json` and `names.json` (migrated from the legacy page) |
-| `legacy` | The v33 prototype, the build prompt, and the previous v34 Firebase page setup (kept for reference) |
+| `legacy` | The v33 prototype (the data source of truth) and the build prompt. The earlier v34 page setup is in git history (commit `de514bf`). |
+| `vercel.json`, `firebase.json` | Hosting on Vercel (the live site) and Firebase Hosting; both send `security-headers.json` |
 | `firestore.rules`, `storage.rules`, `firestore.indexes.json` | Security rules and indexes |
 
 ## Setup (Windows, macOS or Linux)
@@ -75,6 +76,9 @@ Do these once, in the Firebase console for `cottid-72d51`:
 
 ### Deploying
 
+- **Vercel (the live site, https://cottid-africa-food-basket.vercel.app):** builds every push to `main` from `vercel.json`: it generates the data (`pnpm data`), builds the web app, serves every route through the app, sends the security headers, and forwards `/api/v1/*` to the `api` Cloud Function. Add the Vercel domain to Firebase Authentication's authorised domains.
+- **Sign-up and profiles:** signing up creates the account in Firebase Authentication and the `users/{uid}` profile in Firestore. The `ensureProfile` function does this when functions are deployed; until then the app creates the member profile itself (the security rules allow exactly that). The reference collections appear only after `pnpm seed`.
+
 - **Preview** (safe at any time): `pnpm deploy` publishes the app to the Hosting channel `next`. Every push to `main` does the same from CI.
 - **Live** (replaces the current site, deploys functions, rules and indexes): `pnpm deploy:live`, or run the CI workflow by hand with target `live`. **Before the first live deploy**, note that the new security rules replace the old page's rules: the v34 page's own collections (`published_*`, `signups`) become unreadable. Seed first (`pnpm seed`), check the preview, then go live.
 
@@ -129,7 +133,7 @@ Collections create themselves; nothing is made by hand.
 
 - **On first sign-in** the client calls the `ensureProfile` function, which creates `users/{uid}` (role `member`) and, if missing, `settings/platform` with defaults.
 - **Seeding** builds every reference collection (countries, foods, series, nutrition, trade, projections, prices, fx, duties, rate cards, buyers, suppliers, compliance, events, calls, policies, interventions, funders, sources and `meta/dataset`, 4,633 documents). It writes in batches of 400 with merge, so it can be rerun safely, and logs the count per collection.
-  - Against the live project: run `gcloud auth application-default login` once (or set `GOOGLE_APPLICATION_CREDENTIALS` to a service-account key file kept outside the repository), then `pnpm seed`.
+  - Against the live project: Firebase console → Project settings → Service accounts → **Generate new private key**, save the file as `serviceAccount.json` in the project folder (it is git-ignored; never commit or share it), then `pnpm seed`. `GOOGLE_APPLICATION_CREDENTIALS` or `gcloud auth application-default login` also work. The seed explains what to do if the database does not exist yet or the key lacks permission.
   - Against the emulators: `pnpm emulators` in one terminal, `pnpm seed:emulator` in another.
   - `pnpm seed -- --dry-run` builds and counts the documents without writing.
   - The `bootstrap` callable function does the same for a platform admin (with two-step), reading the published `/data/*.json` from Hosting.

@@ -9,7 +9,8 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { initializeApp, applicationDefault, getApps } from 'firebase-admin/app';
+import { initializeApp, getApps } from 'firebase-admin/app';
+import { adminCredential, explain } from './admin-credential';
 import { getFirestore } from 'firebase-admin/firestore';
 import { buildDocs, countByCollection, LANGS, PLATFORM_DEFAULTS, type Datasets } from './seed-lib';
 
@@ -44,7 +45,15 @@ async function main() {
     return;
   }
 
-  if (!getApps().length) initializeApp(process.env.FIRESTORE_EMULATOR_HOST ? { projectId } : { projectId, credential: applicationDefault() });
+  if (!getApps().length) {
+    if (process.env.FIRESTORE_EMULATOR_HOST) initializeApp({ projectId });
+    else {
+      const c = adminCredential();
+      if (c.projectId && c.projectId !== projectId) throw new Error(`serviceAccount.json is for ${c.projectId}, not ${projectId}.`);
+      initializeApp({ projectId, credential: c.credential });
+      console.log(`Using ${c.source}.`);
+    }
+  }
   const db = getFirestore();
   db.settings({ ignoreUndefinedProperties: true });
   console.log(`Seeding project ${projectId}${process.env.FIRESTORE_EMULATOR_HOST ? ` (emulator ${process.env.FIRESTORE_EMULATOR_HOST})` : ''}…`);
@@ -68,7 +77,7 @@ async function main() {
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
   main().catch((e) => {
-    console.error(e instanceof Error ? e.message : e);
+    console.error(explain(e));
     process.exit(1);
   });
 }

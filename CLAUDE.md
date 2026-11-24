@@ -6,4 +6,5 @@
 - Every new interface string goes into all five `locales/<lang>/common.json` files; `pnpm check:locales` enforces it.
 - Use logical CSS properties only (Arabic is right to left). Decorative art is `aria-hidden` and carries the `decor` class (hidden in print).
 - Initial JavaScript budget: under 250 KB gzipped. Lazy-load Firebase, charts, the map and admin.
-- Until parity (M4), deploy only to the Hosting preview channel `next`; the live site still serves the legacy page.
+- The live site is on Vercel (`vercel.json`), built from every push to `main`. Firebase Hosting deploys go to the preview channel `next`; live Firebase deploys are manual (CI workflow_dispatch, target live).
+- `vercel.json` and `firebase.json` must send `security-headers.json` unchanged (unit test in `apps/web/src/security.test.ts`).

@@ -22,3 +22,17 @@ describe('security headers', () => {
     expect(firebase.hosting.rewrites[0]).toEqual({ source: '/api/**', function: { functionId: 'api', region: 'africa-south1' } });
   });
 });
+
+describe('Vercel config', () => {
+  const vercel = JSON.parse(readFileSync(join(__dirname, '..', '..', '..', 'vercel.json'), 'utf8'));
+  it('sends the same security headers as Firebase Hosting', () => {
+    const all = vercel.headers.find((h: { source: string }) => h.source === '/(.*)').headers as { key: string; value: string }[];
+    expect(Object.fromEntries(all.map((h) => [h.key, h.value]))).toEqual(headers);
+  });
+  it('builds the data, serves the SPA and routes the API', () => {
+    expect(vercel.buildCommand).toContain('pnpm data');
+    expect(vercel.outputDirectory).toBe('apps/web/dist');
+    expect(vercel.rewrites.at(-1)).toEqual({ source: '/(.*)', destination: '/index.html' });
+    expect(vercel.rewrites[0].source).toBe('/api/v1/:path*');
+  });
+});

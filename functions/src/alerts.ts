@@ -13,7 +13,7 @@ import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { audit, requireStaff } from './review';
 
 const db = () => getFirestore();
-const SITE = process.env.SITE_URL ?? 'https://cottid-72d51.web.app';
+const SITE = process.env.SITE_URL ?? 'https://cottid-africa-food-basket.vercel.app';
 
 interface Rule {
   kind: 'calls' | 'events';

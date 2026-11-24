@@ -64,13 +64,21 @@ jobs:
     needs: check
     if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || (github.event_name == 'workflow_dispatch' && inputs.target == 'preview')
     runs-on: ubuntu-latest
+    env:
+      HAS_FIREBASE_SECRET: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_COTTID_72D51 != '' }}
     steps:
+      - name: Skip when the Firebase secret is not set yet
+        if: env.HAS_FIREBASE_SECRET != 'true'
+        run: echo "::notice::FIREBASE_SERVICE_ACCOUNT_COTTID_72D51 is not set; the Firebase preview deploy is skipped (Vercel still deploys main). Run 'pnpm firebase init hosting:github' to add it."
       - uses: actions/checkout@v4
+        if: env.HAS_FIREBASE_SECRET == 'true'
       - uses: actions/download-artifact@v4
+        if: env.HAS_FIREBASE_SECRET == 'true'
         with:
           name: web-dist
           path: apps/web/dist
       - uses: FirebaseExtended/action-hosting-deploy@v0
+        if: env.HAS_FIREBASE_SECRET == 'true'
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_COTTID_72D51 }}

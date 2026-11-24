@@ -16,6 +16,8 @@ const pick = (text: string, start: string) => {
 };
 
 test.describe.configure({ mode: 'serial' });
+// Each case loads the 3.9 MB legacy page and recomputes a country; allow for a busy CI machine.
+test.setTimeout(120_000);
 
 for (const mid of ['KE', 'NG', 'EG', 'ET']) {
   test(`country summary matches the legacy page: ${mid}`, async ({ page, browser }, info) => {

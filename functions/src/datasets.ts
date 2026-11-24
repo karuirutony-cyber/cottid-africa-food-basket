@@ -26,7 +26,7 @@ import { audit, requireStaff } from './review';
 
 const db = () => getFirestore();
 const bucket = () => getStorage().bucket();
-export const DATA_BASE_URL = defineString('DATA_BASE_URL', { default: 'https://cottid-72d51.web.app' });
+export const DATA_BASE_URL = defineString('DATA_BASE_URL', { default: 'https://cottid-africa-food-basket.vercel.app' });
 const NAMES = ['TS', 'LIB', 'REG', 'SRC', 'NUT', 'FT', 'SELL', 'CALLS', 'EVENTS', 'POL', 'DEVT', 'DEVF', 'PROG'] as const;
 const names = { en: namesEn, fr: namesFr, pt: namesPt, ar: namesAr, sw: namesSw };
 

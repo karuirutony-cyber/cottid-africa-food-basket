@@ -10,7 +10,7 @@ import { ORG_ROLES } from '@afb/schema';
 import { audit } from './review';
 
 const db = () => getFirestore();
-const SITE = process.env.SITE_URL ?? 'https://cottid-72d51.web.app';
+const SITE = process.env.SITE_URL ?? 'https://cottid-africa-food-basket.vercel.app';
 const OrgRole = z.enum(ORG_ROLES);
 const signedIn = (req: CallableRequest) => {
   if (!req.auth) throw new HttpsError('unauthenticated', 'Sign in first.');

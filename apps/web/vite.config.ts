@@ -117,6 +117,9 @@ export default defineConfig({
     include: ['src/**/*.test.{ts,tsx}'],
     globals: true,
     setupFiles: ['./src/test/setup.ts'],
+    // Node 20 (CI) cannot resolve react-i18next's ESM import of html-parse-stringify; let Vite
+    // transform both instead of leaving them to Node's loader.
+    server: { deps: { inline: ['react-i18next', 'html-parse-stringify'] } },
     css: false,
   },
 });
