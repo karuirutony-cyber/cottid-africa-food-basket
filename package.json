@@ -31,7 +31,8 @@
     "format": "prettier --write .",
     "deploy": "pnpm build && firebase hosting:channel:deploy next --expires 30d",
     "deploy:live": "pnpm build && firebase deploy --only hosting,functions,firestore,storage",
-    "verify": "pnpm lint && pnpm typecheck && pnpm check:locales && pnpm test && pnpm build && pnpm check:budget"
+    "verify": "pnpm lint && pnpm typecheck && pnpm check:locales && pnpm test && pnpm build && pnpm check:budget",
+    "build:vercel": "pnpm data && pnpm --filter @afb/web build && node tools/vercel-output.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",

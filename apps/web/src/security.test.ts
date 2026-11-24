@@ -29,10 +29,13 @@ describe('Vercel config', () => {
     const all = vercel.headers.find((h: { source: string }) => h.source === '/(.*)').headers as { key: string; value: string }[];
     expect(Object.fromEntries(all.map((h) => [h.key, h.value]))).toEqual(headers);
   });
-  it('builds the data, serves the SPA and routes the API', () => {
-    expect(vercel.buildCommand).toContain('pnpm data');
-    expect(vercel.outputDirectory).toBe('apps/web/dist');
+  it('builds from the workspace root whatever the Root Directory, then serves the SPA and routes the API', () => {
+    expect(vercel.buildCommand).toBe('pnpm -w run build:vercel');
+    expect(vercel.outputDirectory).toBe('dist');
     expect(vercel.rewrites.at(-1)).toEqual({ source: '/(.*)', destination: '/index.html' });
     expect(vercel.rewrites[0].source).toBe('/api/v1/:path*');
+  });
+  it('is identical at the repository root and in apps/web (the Vercel Root Directory)', () => {
+    expect(readFileSync(join(__dirname, '..', 'vercel.json'), 'utf8')).toBe(readFileSync(join(__dirname, '..', '..', '..', 'vercel.json'), 'utf8'));
   });
 });
