@@ -99,7 +99,8 @@
     "dataNotAvailable": "Takwimu hazipatikani",
     "loading": "Inapakia…",
     "offline": "Uko nje ya mtandao. Kurasa ulizofungua awali bado zinafanya kazi; takwimu mpya zitapakia ukiunganishwa tena.",
-    "backOnline": "Umerudi mtandaoni."
+    "backOnline": "Umerudi mtandaoni.",
+    "serverOff": "Huduma za seva bado hazijawashwa (functions za Firebase hazijasambazwa). Kila kitu kingine kinafanya kazi; hii itafanya kazi zikiwashwa."
   },
   "system": {
     "errorTitle": "Hitilafu imetokea",
@@ -194,7 +195,8 @@
       "approved": "Limeidhinishwa",
       "rejected": "Halikukubaliwa",
       "published": "Limechapishwa"
-    }
+    },
+    "tooShort": "Eleza marekebisho kwa angalau herufi 10."
   },
   "apikeys": {
     "lead": "Funguo za API ya Africa Food Basket. Kila ufunguo una kikomo cha maombi kwa siku, kinachoanza upya saa 00:00 UTC.",

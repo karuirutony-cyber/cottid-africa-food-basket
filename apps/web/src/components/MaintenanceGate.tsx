@@ -9,7 +9,24 @@ import { Maintenance } from '@/pages/SystemPage';
  * call, so the Firebase SDK is not loaded on every first visit. Staff, sign-in and admin pages stay
  * reachable so the switch can be turned off again.
  */
+/** Checked once per browser session (sessionStorage), not on every page. */
 async function maintenanceOn(): Promise<boolean> {
+  try {
+    const cached = sessionStorage.getItem('afb-maintenance');
+    if (cached !== null) return cached === '1';
+  } catch {
+    /* storage blocked */
+  }
+  const on = await readMaintenance();
+  try {
+    sessionStorage.setItem('afb-maintenance', on ? '1' : '0');
+  } catch {
+    /* storage blocked */
+  }
+  return on;
+}
+
+async function readMaintenance(): Promise<boolean> {
   const base = useEmulators ? 'http://127.0.0.1:8080' : 'https://firestore.googleapis.com';
   const url = `${base}/v1/projects/${firebaseConfig.projectId}/databases/(default)/documents/settings/platform?mask.fieldPaths=maintenance`;
   try {

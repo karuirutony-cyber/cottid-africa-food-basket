@@ -2,7 +2,7 @@ import { useEffect, useId, useState, type FormEvent } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/lib/auth';
-import { call, callMessage, type Submission } from '@/lib/call';
+import { callMessage, listMySuggestions, submitSuggestion, type Submission } from '@/lib/call';
 import { Card, Page, Pill } from '@/components/ui';
 
 export const statusTone = (s: Submission['status']) => (s === 'published' ? 'go' : s === 'approved' ? 'neutral' : s === 'rejected' ? 'no' : 'watch');
@@ -50,7 +50,7 @@ export default function Contribute() {
 
   useEffect(() => {
     if (!auth.user) return;
-    call<{ items: Submission[] }>('myContributions').then((r) => setMine(r.items), () => setMine([]));
+    listMySuggestions(auth.user.uid).then(setMine, () => setMine([]));
   }, [auth.user, sent]);
 
   const submit = async (e: FormEvent) => {
@@ -59,8 +59,8 @@ export default function Contribute() {
     setBusy(true);
     const patch = Object.fromEntries(rows.filter(([k, v]) => k.trim() && v.trim()).map(([k, v]) => [k.trim(), v.trim()]));
     try {
-      const r = await call<{ id: string }>('submit', { target, page, item, text, sourceUrl: sourceUrl.trim(), ...(Object.keys(patch).length ? { patch } : {}) });
-      setSent(r.id);
+      const id = await submitSuggestion(auth.user!.uid, { target, page, item, text, sourceUrl: sourceUrl.trim(), ...(Object.keys(patch).length ? { patch } : {}) });
+      setSent(id);
       setText('');
       setSourceUrl('');
       setRows([]);

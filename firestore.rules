@@ -103,7 +103,8 @@ service cloud.firestore {
         && request.resource.data.text is string
         && request.resource.data.text.size() > 0
         && request.resource.data.text.size() <= 4000
-        && request.resource.data.keys().hasOnly(['uid', 'target', 'text', 'sourceUrl', 'status', 'createdAt', 'page', 'item']);
+        && request.resource.data.keys().hasOnly(['uid', 'target', 'text', 'sourceUrl', 'status', 'createdAt', 'page', 'item', 'patch'])
+        && (!('patch' in request.resource.data) || (request.resource.data.patch is map && request.resource.data.patch.size() <= 20));
       allow read: if (signedIn() && resource.data.uid == request.auth.uid) || staff('verifier');
       allow update: if staff('verifier') && onlyChanges(['status', 'reviewer', 'reviewedAt', 'note'])
         && request.resource.data.status in ['pending', 'approved', 'rejected', 'published'];

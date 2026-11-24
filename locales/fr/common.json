@@ -99,7 +99,8 @@
     "dataNotAvailable": "Données non disponibles",
     "loading": "Chargement…",
     "offline": "Vous êtes hors ligne. Les pages déjà ouvertes fonctionnent toujours ; les nouvelles données se chargeront à la reconnexion.",
-    "backOnline": "Vous êtes de nouveau en ligne."
+    "backOnline": "Vous êtes de nouveau en ligne.",
+    "serverOff": "Les fonctions serveur ne sont pas encore activées (fonctions Firebase non déployées). Tout le reste fonctionne ; ceci fonctionnera dès leur activation."
   },
   "system": {
     "errorTitle": "Un problème est survenu",
@@ -194,7 +195,8 @@
       "approved": "Approuvée",
       "rejected": "Non retenue",
       "published": "Publiée"
-    }
+    },
+    "tooShort": "Décrivez la correction en au moins 10 caractères."
   },
   "apikeys": {
     "lead": "Clés pour l’API Africa Food Basket. Chaque clé dispose d’un quota quotidien de requêtes, remis à zéro à 00 h 00 UTC.",

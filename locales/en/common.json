@@ -99,7 +99,8 @@
     "dataNotAvailable": "Data not available",
     "loading": "Loading…",
     "offline": "You are offline. Pages you have opened before still work; new data will load when you reconnect.",
-    "backOnline": "You are back online."
+    "backOnline": "You are back online.",
+    "serverOff": "The server features are not switched on yet (Firebase functions are not deployed). Everything else works; this will start working once they are."
   },
   "system": {
     "errorTitle": "Something went wrong",
@@ -194,7 +195,8 @@
       "approved": "Approved",
       "rejected": "Not accepted",
       "published": "Published"
-    }
+    },
+    "tooShort": "Describe the correction in at least 10 characters."
   },
   "apikeys": {
     "lead": "Keys for the Africa Food Basket API. Each key has a daily quota of requests; it resets at 00:00 UTC.",

@@ -42,9 +42,15 @@ export function Alerts() {
     if (!uid) return;
     const { db } = await getFirebase();
     const { collection, getDocs } = await import('firebase/firestore');
-    const s = await getDocs(collection(db, `users/${uid}/alerts`));
-    setRules(s.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Rule, 'id'>) })));
-  }, [uid]);
+    try {
+      const s = await getDocs(collection(db, `users/${uid}/alerts`));
+      setRules(s.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Rule, 'id'>) })));
+    } catch {
+      // The live database rules do not cover alerts yet (they arrive with the Firebase deploy).
+      setRules([]);
+      setMsg(t('status.serverOff'));
+    }
+  }, [uid, t]);
   useEffect(() => {
     void load();
   }, [load]);
@@ -55,8 +61,13 @@ export function Alerts() {
     e.preventDefault();
     const { db } = await getFirebase();
     const { addDoc, collection } = await import('firebase/firestore');
-    await addDoc(collection(db, `users/${uid}/alerts`), { kind, country, food: food === 'all' ? '' : food, days: Number(days), email });
-    setMsg(t('alerts.saved'));
+    try {
+      await addDoc(collection(db, `users/${uid}/alerts`), { kind, country, food: food === 'all' ? '' : food, days: Number(days), email });
+      setMsg(t('alerts.saved'));
+    } catch {
+      setMsg(t('status.serverOff'));
+      return;
+    }
     void load();
   };
   const remove = async (id: string) => {
@@ -145,7 +156,13 @@ export function Notifications() {
     if (!uid) return;
     const { db } = await getFirebase();
     const { collection, getDocs, orderBy, query, limit } = await import('firebase/firestore');
-    const s = await getDocs(query(collection(db, `users/${uid}/notifications`), orderBy('createdAt', 'desc'), limit(100)));
+    let s;
+    try {
+      s = await getDocs(query(collection(db, `users/${uid}/notifications`), orderBy('createdAt', 'desc'), limit(100)));
+    } catch {
+      setItems([]);
+      return;
+    }
     setItems(s.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Note, 'id' | 'createdAt'>), createdAt: d.get('createdAt')?.toDate?.().toISOString() ?? null })));
   }, [uid]);
   useEffect(() => {

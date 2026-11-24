@@ -312,6 +312,11 @@ export function Settings() {
     setErr('');
     try {
       await call('updateSettings', { features: s.features, apiQuotas: s.apiQuotas, maintenance: s.maintenance });
+      try {
+        sessionStorage.removeItem('afb-maintenance'); // re-check maintenance mode on the next page
+      } catch {
+        /* storage blocked */
+      }
       setOk('Settings saved.');
     } catch (e) {
       setErr(callMessage(e));

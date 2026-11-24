@@ -139,6 +139,11 @@ describe('submissions', () => {
     await assertFails(addDoc(collection(as('alice'), 'submissions'), ok('bob')));
     await assertFails(addDoc(collection(as('alice'), 'submissions'), { ...ok('alice'), status: 'approved' }));
   });
+  it('a submission may carry proposed values as a small map, nothing else', async () => {
+    await assertSucceeds(addDoc(collection(as('alice'), 'submissions'), { ...ok('alice'), patch: { city: 'Thika' } }));
+    await assertFails(addDoc(collection(as('alice'), 'submissions'), { ...ok('alice'), patch: 'city=Thika' }));
+    await assertFails(addDoc(collection(as('alice'), 'submissions'), { ...ok('alice'), role: 'super_admin' }));
+  });
   it('text is limited to 4,000 characters', async () => {
     await assertSucceeds(addDoc(collection(as('alice'), 'submissions'), ok('alice', 'x'.repeat(4000))));
     await assertFails(addDoc(collection(as('alice'), 'submissions'), ok('alice', 'x'.repeat(4001))));
