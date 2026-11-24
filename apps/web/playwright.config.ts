@@ -6,6 +6,8 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
+  // One worker in CI: the parity, navigation and LCP journeys are timing-sensitive on shared runners.
+  workers: process.env.CI ? 1 : undefined,
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
   use: {
     baseURL: 'http://localhost:4173',
