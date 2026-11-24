@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { call, callMessage } from '@/lib/call';
+import { adminCall } from '@/lib/adminData';
 import { Card, Page, Pill } from '@/components/ui';
 
 const when = (s: string | null | undefined) => (s ? new Date(s).toLocaleString('en-GB') : '–');
@@ -13,7 +14,7 @@ function useCall<T>(name: string, data: unknown = {}) {
   const key = JSON.stringify(data);
   const load = useCallback(() => {
     setErr('');
-    call<T>(name, JSON.parse(key)).then(setValue, (e) => setErr(callMessage(e)));
+    adminCall<T>(name, JSON.parse(key)).then(setValue, (e) => setErr(callMessage(e)));
   }, [name, key]);
   useEffect(load, [load]);
   return { value, err, setErr, load };
@@ -200,8 +201,8 @@ export function Users() {
   const setRole = async (uid: string, role: string) => {
     setErr('');
     try {
-      await call('setUserRole', { uid, role });
-      setOk('Role changed. It reaches their sign-in within a minute (or when they sign in again).');
+      const r = await adminCall<{ claimPending?: boolean }>('setUserRole', { uid, role });
+      setOk(r.claimPending ? 'Role saved on the profile. It reaches their sign-in once the functions are deployed, or straight away with: pnpm make-admin <their e-mail> --role ' + role + '.' : 'Role changed. It reaches their sign-in within a minute (or when they sign in again).');
       load();
     } catch (e) {
       setErr(callMessage(e));

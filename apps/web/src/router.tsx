@@ -104,19 +104,26 @@ export const routes: RouteObject[] = [
           page('contribute', async () => ({ Component: (await import('@/pages/contribute/Contribute')).default })),
 
           // Admin (role-gated from M2; pages from M7–M9)
-          staffPage('admin', 'verifier', 'Dashboard'),
-          staffPage('admin/review', 'verifier', 'ReviewQueue'),
-          staffMore('admin/directory', 'data_steward', (m) => () => <m.Records preset="directory" />),
-          staffMore('admin/content', 'data_steward', (m) => () => <m.Records preset="content" />),
-          staffMore('admin/prices', 'data_steward', (m) => () => <m.Records preset="prices" />),
-          staffMore('admin/duties', 'data_steward', (m) => () => <m.Records preset="duties" />),
-          staffMore('admin/sources', 'data_steward', (m) => () => <m.Records preset="sources" />),
-          staffMore('admin/datasets', 'data_steward', (m) => m.Datasets),
-          staffMore('admin/ingest', 'data_steward', (m) => m.Ingest),
-          staffMore('admin/users', 'platform_admin', (m) => m.Users),
-          staffMore('admin/organisations', 'platform_admin', (m) => m.Organisations),
-          staffPage('admin/audit', 'platform_admin', 'AuditLog'),
-          staffMore('admin/settings', 'platform_admin', (m) => m.Settings),
+          {
+            path: 'admin',
+            lazy: async () => ({ Component: (await import('@/pages/admin/AdminLayout')).AdminLayout }),
+            children: [
+              { index: true, lazy: staffPage('', 'verifier', 'Dashboard').lazy },
+              staffPage('review', 'verifier', 'ReviewQueue'),
+              staffMore('directory', 'data_steward', (m) => () => <m.Records preset="directory" />),
+              staffMore('content', 'data_steward', (m) => () => <m.Records preset="content" />),
+              staffMore('prices', 'data_steward', (m) => () => <m.Records preset="prices" />),
+              staffMore('duties', 'data_steward', (m) => () => <m.Records preset="duties" />),
+              staffMore('sources', 'data_steward', (m) => () => <m.Records preset="sources" />),
+              staffMore('datasets', 'data_steward', (m) => m.Datasets),
+              staffMore('ingest', 'data_steward', (m) => m.Ingest),
+              staffMore('users', 'platform_admin', (m) => m.Users),
+              staffMore('organisations', 'platform_admin', (m) => m.Organisations),
+              staffPage('audit', 'platform_admin', 'AuditLog'),
+              staffMore('settings', 'platform_admin', (m) => m.Settings),
+            ],
+          },
+
 
           // System
           { path: 'offline', element: <Offline /> },

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { call, callMessage, type Submission } from '@/lib/call';
+import { adminCall } from '@/lib/adminData';
 import { Card, Kpi, KpiRow, Page, Pill } from '@/components/ui';
 import { statusTone } from '@/pages/contribute/Contribute';
 
@@ -23,7 +24,7 @@ export function Dashboard() {
   const [s, setS] = useState<Stats | null>(null);
   const [err, setErr] = useState('');
   useEffect(() => {
-    call<Stats>('adminStats').then(setS, (e) => setErr(callMessage(e)));
+    adminCall<Stats>('adminStats').then(setS, (e) => setErr(callMessage(e)));
   }, []);
   const links: [string, string, boolean][] = [
     ['/admin/review', 'Review queue', auth.can('verifier')],
@@ -127,7 +128,7 @@ export function ReviewQueue() {
   const [msg, setMsg] = useState('');
   const load = useCallback(() => {
     setItems(null);
-    call<{ items: Submission[] }>('reviewQueue', { status }).then((r) => setItems(r.items), (e) => {
+    adminCall<{ items: Submission[] }>('reviewQueue', { status }).then((r) => setItems(r.items), (e) => {
       setMsg(callMessage(e));
       setItems([]);
     });
@@ -135,7 +136,7 @@ export function ReviewQueue() {
   useEffect(load, [load]);
   const decide = async (id: string, decision: 'approved' | 'rejected') => {
     try {
-      await call('review', { id, decision, note: notes[id] ?? '' });
+      await adminCall('review', { id, decision, note: notes[id] ?? '' });
       setMsg(decision === 'approved' ? 'Approved. A data steward can now publish it.' : 'Marked as not accepted.');
       load();
     } catch (e) {
@@ -242,7 +243,7 @@ export function AuditLog() {
   const [rows, setRows] = useState<AuditRow[] | null>(null);
   const [err, setErr] = useState('');
   useEffect(() => {
-    call<{ items: AuditRow[] }>('auditList', { limit: 200 }).then((r) => setRows(r.items), (e) => {
+    adminCall<{ items: AuditRow[] }>('auditList', { limit: 200 }).then((r) => setRows(r.items), (e) => {
       setErr(callMessage(e));
       setRows([]);
     });

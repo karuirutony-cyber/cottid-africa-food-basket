@@ -1,7 +1,7 @@
 import { useEffect, useId, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { LANGS, type Lang, type Role } from '@afb/schema';
+import { hasRole, LANGS, type Lang, type Role } from '@afb/schema';
 import type { TotpSecret } from 'firebase/auth';
 import { authMessage, useAuth } from '@/lib/auth';
 import { setLanguage } from '@/lib/i18n';
@@ -373,7 +373,9 @@ export function RequireRole({ min, children }: { min: Role; children: ReactNode 
   const loc = useLocation();
   if (!auth.ready) return null;
   if (!auth.user) return <Navigate to={`/signin?next=${encodeURIComponent(loc.pathname + loc.search)}`} replace />;
-  if (!auth.can(min)) {
+  // Role is enough to open staff pages; two-step is enforced by the rules and functions on every protected
+  // change, and the admin console shows a banner until it is on.
+  if (!hasRole(auth.role, min)) {
     const missingFactor = auth.needsTwoStep && auth.role !== 'member';
     return (
       <Page kicker={t('section.admin')} title={t('auth.noAccessTitle')} lead={missingFactor ? t('auth.twoStepRequired') : t('auth.noAccess')}>
