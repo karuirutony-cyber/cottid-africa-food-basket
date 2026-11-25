@@ -149,18 +149,52 @@ export function Apis() {
   );
 }
 
-const SERIES_LABEL: Record<string, string> = {
-  fao_prod: 'Production (FAOSTAT)',
-  fao_imp: 'Imports (FAOSTAT)',
-  fao_exp: 'Exports (FAOSTAT)',
-  fao_use: 'Domestic use (FAOSTAT)',
-  fao_food: 'Food (FAOSTAT)',
-  fao_feed: 'Feed (FAOSTAT)',
-  fao_loss: 'Losses (FAOSTAT)',
-  fao_seed: 'Seed (FAOSTAT)',
-  fao_other: 'Other uses (FAOSTAT)',
-  fao_stock: 'Stock change (FAOSTAT)',
+/** Food-balance series: label and unit (units as the legacy platform states them). */
+const SERIES_META: Record<string, [string, string]> = {
+  fao_prod: ['Production (FAOSTAT)', 'thousand tonnes'],
+  fao_imp: ['Imports (FAOSTAT)', 'thousand tonnes'],
+  fao_exp: ['Exports (FAOSTAT)', 'thousand tonnes'],
+  fao_use: ['Domestic use (FAOSTAT)', 'thousand tonnes'],
+  fao_food: ['Food (FAOSTAT)', 'thousand tonnes'],
+  fao_feed: ['Feed (FAOSTAT)', 'thousand tonnes'],
+  fao_loss: ['Losses (FAOSTAT)', 'thousand tonnes'],
+  fao_seed: ['Seed (FAOSTAT)', 'thousand tonnes'],
+  fao_other: ['Other uses (FAOSTAT)', 'thousand tonnes'],
+  fao_stock: ['Stock change (FAOSTAT)', 'thousand tonnes'],
+  fao_kgcap: ['Food supply per person (FAOSTAT)', 'kg a year'],
+  crop_prod: ['Crop production (FAOSTAT)', 'thousand tonnes'],
+  crop_area: ['Harvested area (FAOSTAT)', 'thousand hectares'],
+  crop_yield: ['Yield (FAOSTAT)', 't/ha'],
+  usda_prod: ['Production (USDA)', 'thousand tonnes'],
+  usda_imp: ['Imports (USDA)', 'thousand tonnes'],
+  usda_exp: ['Exports (USDA)', 'thousand tonnes'],
+  usda_cons: ['Consumption (USDA)', 'thousand tonnes'],
+  usda_stocks: ['Ending stocks (USDA)', 'thousand tonnes'],
+  usda_area: ['Harvested area (USDA)', 'thousand hectares'],
+  trade_imp_kt: ['Imports (UN Comtrade)', 'thousand tonnes'],
+  trade_imp_usd: ['Imports (UN Comtrade)', 'US$ million'],
+  trade_exp_kt: ['Exports (UN Comtrade)', 'thousand tonnes'],
+  trade_exp_usd: ['Exports (UN Comtrade)', 'US$ million'],
 };
+const isYear = (k: string) => /^\d{4}$/.test(k);
+/** Keeps only year-to-number series; the USDA block (year to fields) becomes one series per field. */
+function balanceSeries(raw: Record<string, unknown>): Record<string, Record<string, number | null>> {
+  const out: Record<string, Record<string, number | null>> = {};
+  for (const [k, v] of Object.entries(raw)) {
+    if (!v || typeof v !== 'object') continue;
+    const entries = Object.entries(v as Record<string, unknown>);
+    if (k === 'usda') {
+      for (const [y, row] of entries) {
+        if (!isYear(y) || !row || typeof row !== 'object') continue;
+        for (const [f, n] of Object.entries(row as Record<string, unknown>)) if (typeof n === 'number') (out[`usda_${f}`] ??= {})[y] = n;
+      }
+      continue;
+    }
+    const years = entries.filter(([y, n]) => isYear(y) && (typeof n === 'number' || n === null));
+    if (years.length) out[k] = Object.fromEntries(years) as Record<string, number | null>;
+  }
+  return out;
+}
 
 export function Explorer() {
   const [params, setParams] = useSearchParams();
@@ -177,7 +211,7 @@ export function Explorer() {
     if (!data) return {} as Record<string, Record<string, number | null>>;
     if (kind === 'macro') return data.TS.macro[mid] ?? {};
     if (kind === 'prices') return Object.fromEntries(Object.entries(data.TS.prices).map(([k, p]) => [k, p.v]));
-    return data.TS.balance[food]?.[mid] ?? {};
+    return balanceSeries((data.TS.balance[food]?.[mid] ?? {}) as Record<string, unknown>);
   }, [data, kind, mid, food]);
   const keys = Object.keys(series);
   const [pick, setPick] = useState<string>('');
@@ -192,8 +226,10 @@ export function Explorer() {
         })()
       : kind === 'prices'
         ? `${TS.prices[k]?.label ?? k} (${TS.prices[k]?.unit ?? ''})`
-        : SERIES_LABEL[k] ?? k.replace(/_/g, ' ');
-  const years = [...new Set(keys.flatMap((k) => Object.keys(series[k] ?? {})))].map(Number).sort((a, b) => a - b);
+        : SERIES_META[k]
+          ? `${SERIES_META[k][0]} (${SERIES_META[k][1]})`
+          : k.replace(/_/g, ' ');
+  const years = [...new Set(keys.flatMap((k) => Object.keys(series[k] ?? {})))].filter(isYear).map(Number).sort((a, b) => a - b);
   const vals = Object.fromEntries(Object.entries(series[key] ?? {}).map(([y, v]) => [Number(y), v]));
   const rowsAll = years.map((y) => [y, ...keys.map((k) => series[k]?.[y] ?? '')]);
   return (
@@ -221,7 +257,7 @@ export function Explorer() {
       {keys.length ? (
         <>
           <Card>
-            <LineChart title={labelOf(key)} unit={kind === 'balance' ? 'thousand tonnes' : ''} years={years} name={`${kind}-${mid}-${food}-${key}`} series={[{ key, label: labelOf(key), color: '#c22e16', vals }]} />
+            <LineChart title={labelOf(key)} unit={kind === 'balance' ? (SERIES_META[key]?.[1] ?? '') : ''} years={years} name={`${kind}-${mid}-${food}-${key}`} series={[{ key, label: labelOf(key), color: '#c22e16', vals }]} />
           </Card>
           <Card title="All series in this selection" aside={<Csv name={`${kind}-${kind === 'prices' ? 'world' : mid}${kind === 'balance' ? `-${food}` : ''}`} header={['Year', ...keys.map(labelOf)]} rows={rowsAll} />}>
             <div tabIndex={0} role="region" aria-label="Scrollable table" className="scroll-x max-h-[520px] overflow-y-auto">
