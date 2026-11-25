@@ -41,6 +41,8 @@ jobs:
           java-version: 21
       - name: Security rules tests (Firestore emulator)
         run: pnpm test:rules
+      - name: Vercel server tests (auth and Firestore emulators)
+        run: pnpm test:api
       - name: Playwright journeys (1280 px and 400 px, axe, parity, 4G LCP, under the CSP)
         run: |
           pnpm --filter @afb/web exec playwright install --with-deps chromium

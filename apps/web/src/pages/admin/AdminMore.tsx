@@ -2,13 +2,14 @@
  * Every action goes through a Cloud Function that re-checks the role and second factor and audits. */
 import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth';
-import { callMessage, serverIsOff } from '@/lib/call';
-import { serverCall } from '@/lib/serverless';
+import { callMessage } from '@/lib/call';
+import { canRun, serverCall } from '@/lib/serverless';
 import { Card, Page, Pill } from '@/components/ui';
 
 const when = (s: string | null | undefined) => (s ? new Date(s).toLocaleString('en-GB') : '–');
 
-function useCall<T>(name: string, data: unknown = {}) {
+/** Loads `name`; `action` is the server action the page's buttons need (to say when it cannot run). */
+function useCall<T>(name: string, data: unknown = {}, action?: string) {
   const [value, setValue] = useState<T | null>(null);
   const [err, setErr] = useState('');
   const [off, setOff] = useState(false);
@@ -18,14 +19,14 @@ function useCall<T>(name: string, data: unknown = {}) {
     serverCall<T>(name, JSON.parse(key)).then(
       (v) => {
         setValue(v);
-        setOff(serverIsOff());
+        if (action) void canRun(action).then((ok) => setOff(!ok));
       },
       (e) => {
-        setOff(serverIsOff());
+        if (action) void canRun(action).then((ok) => setOff(!ok));
         setErr(callMessage(e));
       },
     );
-  }, [name, key]);
+  }, [name, key, action]);
   useEffect(load, [load]);
   return { value, err, setErr, load, off };
 }
@@ -69,7 +70,7 @@ interface DatasetRow {
 }
 
 export function Datasets() {
-  const { value, err, setErr, load, off } = useCall<{ live: string | null; items: DatasetRow[] }>('listDatasets');
+  const { value, err, setErr, load, off } = useCall<{ live: string | null; items: DatasetRow[] }>('listDatasets', {}, 'buildDataset');
   const [ok, setOk] = useState('');
   const [busy, setBusy] = useState('');
   const act = async (label: string, name: string, data: unknown, done: (r: Record<string, unknown>) => string) => {
@@ -156,7 +157,7 @@ interface IngestRun {
 }
 
 export function Ingest() {
-  const { value, err, setErr, load, off } = useCall<{ items: IngestRun[] }>('listIngestRuns');
+  const { value, err, setErr, load, off } = useCall<{ items: IngestRun[] }>('listIngestRuns', {}, 'runIngest');
   const [ok, setOk] = useState('');
   const [busy, setBusy] = useState(false);
   const run = async () => {

@@ -76,7 +76,12 @@ Do these once, in the Firebase console for `cottid-72d51`:
 
 ### Deploying
 
-- **Vercel (the live site, https://cottid-africa-food-basket.vercel.app):** builds every push to `main` from `vercel.json`: it generates the data (`pnpm data`), builds the web app, serves every route through the app, sends the security headers, and forwards `/api/v1/*` to the `api` Cloud Function. Add the Vercel domain to Firebase Authentication's authorised domains.
+- **Vercel (the live site, https://cottid-africa-food-basket.vercel.app):** builds every push to `main` from `vercel.json`: it generates the data (`pnpm data`), builds the web app, serves every route through the app, sends the security headers, and runs the platform's server as Vercel functions (below). Add the Vercel domain to Firebase Authentication's authorised domains.
+- **The Vercel server (`apps/web/api`, works on the free Firebase plan):** the public data API (`/api/v1`), API keys, running alerts and the ingest now, and role changes that also update the sign-in claim (`/api/action`), plus the daily alerts and weekly ingest (`/api/cron`, Vercel Cron). In Vercel → Project → Settings → Environment Variables (Production), add:
+  - `FIREBASE_SERVICE_ACCOUNT`: the whole service-account key JSON (Firebase console → Project settings → Service accounts → Generate new private key). Never commit it.
+  - `CRON_SECRET`: any long random string; Vercel sends it to the cron jobs, and nothing else can start them.
+
+  Then redeploy. Until `FIREBASE_SERVICE_ACCOUNT` is set, `/api/action` reports `configured: false` and the site falls back to working directly with Firestore (all but API keys, alerts and ingest). The site tries the Firebase functions first, then this server, then Firestore. Tests: `pnpm test:api` (against the emulators).
 - **Sign-up and profiles:** signing up creates the account in Firebase Authentication and the `users/{uid}` profile in Firestore. The `ensureProfile` function does this when functions are deployed; until then the app creates the member profile itself (the security rules allow exactly that). The reference collections appear only after `pnpm seed`.
 
 - **Preview** (safe at any time): `pnpm deploy` publishes the app to the Hosting channel `next`. Every push to `main` does the same from CI.
@@ -114,7 +119,7 @@ GitHub Actions (`.github/workflows/ci.yml`) runs, on every push: lint, typecheck
 
 ## Public API
 
-`GET /api/v1/...` on the Hosting domain (rewritten to the `api` function in africa-south1). Read-only, over the seeded Firestore data; every value keeps its source ID.
+`GET /api/v1/...` on the site's domain, served by the Vercel function `apps/web/api/v1.ts` (and by the `api` Cloud Function on Firebase Hosting). Read-only, over the seeded Firestore data; every value keeps its source ID.
 
 - **Keys:** signed-in users create up to 5 keys at `/account/api-keys`. The key is shown once; only its SHA-256 hash is stored (`apiKeys/{hash}`). Send it as `X-API-Key`.
 - **Quotas:** daily per key (default 10,000; set `settings/platform.apiQuotas.member`), reset 00:00 UTC. Responses carry `X-RateLimit-Limit` and `X-RateLimit-Remaining`; over quota returns 429 with `Retry-After`; missing or revoked keys return 401.

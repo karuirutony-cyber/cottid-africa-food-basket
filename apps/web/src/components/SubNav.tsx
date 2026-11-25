@@ -11,7 +11,8 @@ export function SubNav() {
 
   return (
     <nav aria-label={t('a11y.pages')} className="border-b border-line bg-surface/70">
-      <ul className="wrap m-0 flex list-none gap-1 overflow-x-auto py-2">
+      {/* Wraps onto a second line on phones, so no page of the section is hidden off-screen. */}
+      <ul className="wrap m-0 flex list-none flex-wrap gap-1 py-2">
         {section.pages.map((p) => (
           <li key={p.path} className="shrink-0">
             <NavLink

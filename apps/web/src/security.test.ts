@@ -32,8 +32,16 @@ describe('Vercel config', () => {
   it('builds from the workspace root whatever the Root Directory, then serves the SPA and routes the API', () => {
     expect(vercel.buildCommand).toBe('pnpm -w run build:vercel');
     expect(vercel.outputDirectory).toBe('dist');
-    expect(vercel.rewrites.at(-1)).toEqual({ source: '/(.*)', destination: '/index.html' });
-    expect(vercel.rewrites[0].source).toBe('/api/v1/:path*');
+    // Every route but /api/* is the app; the API is the site's own Vercel function.
+    expect(vercel.rewrites.at(-1)).toEqual({ source: '/((?!api/).*)', destination: '/index.html' });
+    expect(vercel.rewrites[0]).toEqual({ source: '/api/v1/:path*', destination: '/api/v1?path=:path*' });
+    expect(JSON.stringify(vercel.rewrites)).not.toMatch(/cloudfunctions\.net/);
+  });
+  it('schedules the daily alerts and the weekly ingest', () => {
+    expect(vercel.crons).toEqual([
+      { path: '/api/cron?job=alerts', schedule: '0 3 * * *' },
+      { path: '/api/cron?job=ingest', schedule: '0 0 * * 1' },
+    ]);
   });
   it('is identical at the repository root and in apps/web (the Vercel Root Directory)', () => {
     expect(readFileSync(join(__dirname, '..', 'vercel.json'), 'utf8')).toBe(readFileSync(join(__dirname, '..', '..', '..', 'vercel.json'), 'utf8'));

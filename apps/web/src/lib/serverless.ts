@@ -8,7 +8,7 @@
  */
 import type * as FirestoreModule from 'firebase/firestore';
 import type { Firestore } from 'firebase/firestore';
-import { call, functionsUnavailable, ServerOffError } from './call';
+import { call, functionsUnavailable, serverIsOff, ServerOffError } from './call';
 import { getFirebase } from './firebase';
 import i18n from './i18n';
 
@@ -340,18 +340,69 @@ export const WORKS_WITHOUT_FUNCTIONS = new Set(Object.keys(FALLBACKS));
 /** Actions that only the server can do. */
 export const needsServer = (name: string) => SERVER_ONLY.has(name);
 
-/** Calls the function; if the functions are not deployed, does the same directly where the rules allow. */
+// ---- The Vercel server (apps/web/api) -------------------------------------------------------------
+interface VercelInfo {
+  configured: boolean;
+  actions: string[];
+}
+let vercelInfo: Promise<VercelInfo> | null = null;
+/** What the site's own server (Vercel functions) offers; asked once per visit. */
+export function vercelServer(): Promise<VercelInfo> {
+  vercelInfo ??= fetch('/api/action', { headers: { Accept: 'application/json' } })
+    .then(async (r) => {
+      if (!r.ok || !(r.headers.get('content-type') ?? '').includes('json')) return { configured: false, actions: [] };
+      const j = (await r.json()) as Partial<VercelInfo>;
+      return { configured: !!j.configured, actions: j.actions ?? [] };
+    })
+    .catch(() => ({ configured: false, actions: [] }));
+  return vercelInfo;
+}
+
+async function vercelCall<T>(name: string, data: unknown): Promise<T> {
+  const info = await vercelServer();
+  if (!info.configured || !info.actions.includes(name)) throw new ServerOffError();
+  const { auth } = await getFirebase();
+  const token = await auth.currentUser?.getIdToken();
+  if (!token) fail('status.signInAgain');
+  const r = await fetch('/api/action', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ name, data }) });
+  const j = (await r.json().catch(() => null)) as { result?: T; error?: { code?: string; message?: string } } | null;
+  if (r.ok && j) return j.result as T;
+  if (r.status === 503 || !j) throw new ServerOffError();
+  const err = new Error(j.error?.message || i18n.t('status.failed')) as Error & { code: string };
+  err.code = `functions/${j.error?.code ?? 'internal'}`;
+  throw err;
+}
+
+/**
+ * Whether an action can run on a server right now: the Firebase functions (until a call finds them
+ * missing), or the Vercel server when it offers that action.
+ */
+export async function canRun(name: string): Promise<boolean> {
+  if (!serverIsOff()) return true;
+  const info = await vercelServer();
+  return info.configured && info.actions.includes(name);
+}
+
+/**
+ * Runs an action: the Firebase function first; if the functions are not deployed, the Vercel server;
+ * if neither has it, the same thing directly in Firestore where the rules allow.
+ */
 export async function serverCall<T = unknown>(name: string, data: unknown = {}): Promise<T> {
   try {
     return await call<T>(name, data);
   } catch (e) {
-    const fb = FALLBACKS[name];
     if (!functionsUnavailable(e)) throw e;
-    if (!fb) throw new ServerOffError();
-    const { db, auth } = await getFirebase();
-    const user = auth.currentUser;
-    if (!user) fail('status.signInAgain');
-    const fs = await import('firebase/firestore');
-    return (await fb((data ?? {}) as Data, { fs, db, uid: user!.uid, email: user!.email ?? '' })) as T;
   }
+  try {
+    return await vercelCall<T>(name, data);
+  } catch (e) {
+    if (!(e instanceof ServerOffError)) throw e;
+  }
+  const fb = FALLBACKS[name];
+  if (!fb) throw new ServerOffError();
+  const { db, auth } = await getFirebase();
+  const user = auth.currentUser;
+  if (!user) fail('status.signInAgain');
+  const fs = await import('firebase/firestore');
+  return (await fb((data ?? {}) as Data, { fs, db, uid: user!.uid, email: user!.email ?? '' })) as T;
 }

@@ -2,8 +2,8 @@ import { useCallback, useEffect, useId, useState, type FormEvent } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/lib/auth';
-import { callMessage, serverIsOff } from '@/lib/call';
-import { serverCall } from '@/lib/serverless';
+import { callMessage } from '@/lib/call';
+import { canRun, serverCall } from '@/lib/serverless';
 import { Card, Page, Pill } from '@/components/ui';
 
 interface KeyRow {
@@ -32,12 +32,12 @@ export default function ApiKeys() {
     serverCall<{ items: KeyRow[] }>('listApiKeys').then(
       (r) => {
         setKeys(r.items.sort((a, b) => Number(a.revoked) - Number(b.revoked)));
-        setOff(serverIsOff());
+        void canRun('createApiKey').then((ok) => setOff(!ok));
       },
       (e) => {
         setKeys([]);
-        setOff(serverIsOff());
-        if (!serverIsOff()) setErr(callMessage(e));
+        setErr(callMessage(e));
+        void canRun('createApiKey').then((ok) => setOff(!ok));
       },
     );
   }, []);

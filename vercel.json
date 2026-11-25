@@ -4,13 +4,28 @@
   "installCommand": "pnpm install --frozen-lockfile",
   "buildCommand": "pnpm -w run build:vercel",
   "outputDirectory": "dist",
+  "functions": {
+    "api/**/*.ts": {
+      "maxDuration": 60
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/cron?job=alerts",
+      "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron?job=ingest",
+      "schedule": "0 0 * * 1"
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/v1/:path*",
-      "destination": "https://africa-south1-cottid-72d51.cloudfunctions.net/api/v1/:path*"
+      "destination": "/api/v1?path=:path*"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
   ],
