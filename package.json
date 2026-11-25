@@ -21,6 +21,7 @@
     "seed": "tsx tools/seed.ts",
     "seed:emulator": "tsx tools/seed.ts --project demo-cottid --emulator",
     "make-admin": "tsx tools/make-admin.ts",
+    "two-step": "tsx tools/two-step.ts",
     "check:locales": "tsx tools/check-locales.ts",
     "check:budget": "tsx tools/check-budget.ts",
     "extract": "tsx tools/extract.ts legacy/platform_v33.html",

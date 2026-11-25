@@ -106,18 +106,18 @@ async function publish(version: string, actor: string, action: 'publishDataset' 
 }
 
 export const buildDataset = onCall({ timeoutSeconds: 300, memory: '1GiB' }, async (req) => {
-  requireStaff(req, 'data_steward');
+  await requireStaff(req, 'data_steward');
   return build(req.auth!.uid, 'manual');
 });
 
 export const publishDataset = onCall({ timeoutSeconds: 540, memory: '1GiB' }, async (req) => {
-  requireStaff(req, 'data_steward');
+  await requireStaff(req, 'data_steward');
   const { version } = z.object({ version: z.string().min(3).max(80) }).strict().parse(req.data ?? {});
   return publish(version, req.auth!.uid, 'publishDataset');
 });
 
 export const rollbackDataset = onCall({ timeoutSeconds: 540, memory: '1GiB' }, async (req) => {
-  requireStaff(req, 'data_steward');
+  await requireStaff(req, 'data_steward');
   const meta = (await db().doc('meta/dataset').get()).data() ?? {};
   const current = meta.version as string | undefined;
   const prev = current ? ((await db().doc(`datasets/${current}`).get()).get('previous') as string | null) : null;
@@ -127,7 +127,7 @@ export const rollbackDataset = onCall({ timeoutSeconds: 540, memory: '1GiB' }, a
 });
 
 export const listDatasets = onCall(async (req) => {
-  requireStaff(req, 'data_steward');
+  await requireStaff(req, 'data_steward');
   const s = await db().collection('datasets').orderBy('builtAt', 'desc').limit(50).get();
   const meta = (await db().doc('meta/dataset').get()).data() ?? {};
   return {
@@ -188,14 +188,14 @@ export const scheduledIngest = onSchedule({ schedule: 'every monday 03:00', time
 });
 
 export const runIngest = onCall({ timeoutSeconds: 300 }, async (req) => {
-  requireStaff(req, 'data_steward');
+  await requireStaff(req, 'data_steward');
   const out = await ingest(req.auth!.uid);
   await audit(req.auth!.uid, 'runIngest', `ingestRuns/${out.id}`, null, out);
   return out;
 });
 
 export const listIngestRuns = onCall(async (req) => {
-  requireStaff(req, 'data_steward');
+  await requireStaff(req, 'data_steward');
   const s = await db().collection('ingestRuns').orderBy('startedAt', 'desc').limit(30).get();
   return { items: s.docs.map((d) => ({ id: d.id, ...d.data(), startedAt: d.get('startedAt')?.toDate?.().toISOString() ?? null, finishedAt: d.get('finishedAt')?.toDate?.().toISOString() ?? null })) };
 });

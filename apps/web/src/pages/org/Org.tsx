@@ -2,7 +2,8 @@ import { useCallback, useEffect, useId, useState, type FormEvent } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/lib/auth';
-import { call, callMessage } from '@/lib/call';
+import { callMessage } from '@/lib/call';
+import { serverCall } from '@/lib/serverless';
 import { Card, Page, Pill, Select } from '@/components/ui';
 
 interface OrgInfo {
@@ -26,9 +27,9 @@ function useOrg() {
   const [err, setErr] = useState('');
   const load = useCallback(() => {
     if (!auth.user) return;
-    if (orgId) call<OrgInfo>('orgInfo', { orgId }).then(setInfo, (e) => setErr(callMessage(e)));
+    if (orgId) serverCall<OrgInfo>('orgInfo', { orgId }).then(setInfo, (e) => setErr(callMessage(e)));
     else setInfo(null);
-    call<{ items: Invite[] }>('myInvites').then((r) => setInvites(r.items), () => setInvites([]));
+    serverCall<{ items: Invite[] }>('myInvites').then((r) => setInvites(r.items), () => setInvites([]));
   }, [auth.user, orgId]);
   useEffect(load, [load]);
   return { auth, orgId, info, invites, err, setErr, load };
@@ -56,7 +57,7 @@ export function OrgHome() {
   const create = async (e: FormEvent) => {
     e.preventDefault();
     try {
-      await call('createOrg', { name: name.trim() });
+      await serverCall('createOrg', { name: name.trim() });
       window.location.reload(); // the profile now carries the organisation
     } catch (x) {
       setErr(callMessage(x));
@@ -64,7 +65,7 @@ export function OrgHome() {
   };
   const accept = async (i: Invite) => {
     try {
-      await call('acceptInvite', { orgId: i.orgId, inviteId: i.id });
+      await serverCall('acceptInvite', { orgId: i.orgId, inviteId: i.id });
       window.location.reload();
     } catch (x) {
       setErr(callMessage(x));
@@ -131,7 +132,7 @@ export function OrgMembers() {
   const run = async (name: string, data: unknown, ok: string) => {
     setErr('');
     try {
-      await call(name, data);
+      await serverCall(name, data);
       setMsg(ok);
       load();
     } catch (x) {
@@ -256,7 +257,7 @@ export function OrgSettings() {
             onSubmit={(e) => {
               e.preventDefault();
               setErr('');
-              call('updateOrg', { orgId: info!.org.id, name: name.trim() }).then(
+              serverCall('updateOrg', { orgId: info!.org.id, name: name.trim() }).then(
                 () => {
                   setMsg(t('auth.saved'));
                   load();

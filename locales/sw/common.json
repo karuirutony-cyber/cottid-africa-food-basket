@@ -101,7 +101,10 @@
     "loading": "Inapakia…",
     "offline": "Uko nje ya mtandao. Kurasa ulizofungua awali bado zinafanya kazi; takwimu mpya zitapakia ukiunganishwa tena.",
     "backOnline": "Umerudi mtandaoni.",
-    "serverOff": "Huduma za seva bado hazijawashwa (functions za Firebase hazijasambazwa). Kila kitu kingine kinafanya kazi; hii itafanya kazi zikiwashwa."
+    "serverOff": "Huduma za seva bado hazijawashwa (functions za Firebase hazijasambazwa). Kila kitu kingine kinafanya kazi; hii itafanya kazi zikiwashwa.",
+    "denied": "Huna ruhusa ya kufanya hivi. Ikiwa jukumu lako lilibadilishwa hivi karibuni, toka kisha uingie tena.",
+    "signInAgain": "Kipindi chako kimeisha. Ingia tena.",
+    "failed": "Hilo halikufanikiwa. Jaribu tena baada ya muda mfupi."
   },
   "system": {
     "errorTitle": "Hitilafu imetokea",
@@ -282,5 +285,28 @@
       "calls": "Miito ya mapendekezo",
       "sources": "Vyanzo vya takwimu"
     }
+  },
+  "server": {
+    "badPath": "Andika rekodi kama mkusanyiko/kitambulisho, kwa mfano buyers/KE-R-01.",
+    "notEditable": "Rekodi za {{coll}} haziwezi kubadilishwa hapa.",
+    "nothingChanged": "Hakuna kilichobadilika.",
+    "lockedFields": "Sehemu hizi haziwezi kubadilishwa: {{fields}}.",
+    "noRecord": "{{path}} haipo.",
+    "unknownFields": "{{path}} haina sehemu {{fields}}.",
+    "badDecision": "Chagua kukubali au kukataa.",
+    "noSubmission": "Pendekezo halipo.",
+    "already": "Pendekezo hili tayari ni {{status}}.",
+    "onlyApproved": "Ni pendekezo lililokubaliwa tu linaloweza kuchapishwa.",
+    "reason": "Toa sababu ya angalau herufi 5.",
+    "notMember": "Wewe si mwanachama wa shirika hili tena.",
+    "orgName": "Jina linahitaji herufi 2 hadi 120.",
+    "hasOrg": "Tayari wewe ni mwanachama wa shirika.",
+    "badEmail": "Weka anwani sahihi ya barua pepe.",
+    "inviteClosed": "Mwaliko huu haupo wazi tena.",
+    "inviteOther": "Mwaliko huu ni wa anwani nyingine ya barua pepe.",
+    "leaveFirst": "Ondoka kwanza kwenye shirika lako la sasa.",
+    "badRole": "Chagua jukumu sahihi.",
+    "noMember": "Mwanachama hayupo.",
+    "lastAdmin": "Shirika linahitaji angalau msimamizi mmoja."
   }
 }

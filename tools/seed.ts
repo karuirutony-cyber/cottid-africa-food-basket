@@ -11,7 +11,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { initializeApp, getApps } from 'firebase-admin/app';
 import { adminCredential, explain } from './admin-credential';
-import { getFirestore } from 'firebase-admin/firestore';
+import { FieldValue, getFirestore } from 'firebase-admin/firestore';
 import { buildDocs, countByCollection, LANGS, PLATFORM_DEFAULTS, type Datasets } from './seed-lib';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -70,6 +70,13 @@ async function main() {
   if (!(await settings.get()).exists) {
     await settings.set(PLATFORM_DEFAULTS);
     counts.settings = 1;
+  }
+  // Two-step for staff starts off (enrolling needs Identity Platform); a super admin turns it on in
+  // Admin > Settings, or with: pnpm two-step on
+  const security = db.doc('settings/security');
+  if (!(await security.get()).exists) {
+    await security.set({ requireTwoStep: false, updatedAt: FieldValue.serverTimestamp(), updatedBy: 'cli:seed' });
+    counts.settings = (counts.settings ?? 0) + 1;
   }
   for (const [coll, n] of Object.entries(counts).sort()) console.log(`  ${coll.padEnd(14)} ${n}`);
   console.log('Seed complete.');

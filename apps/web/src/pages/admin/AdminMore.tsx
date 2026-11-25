@@ -2,8 +2,8 @@
  * Every action goes through a Cloud Function that re-checks the role and second factor and audits. */
 import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth';
-import { call, callMessage } from '@/lib/call';
-import { adminCall } from '@/lib/adminData';
+import { callMessage, serverIsOff } from '@/lib/call';
+import { serverCall } from '@/lib/serverless';
 import { Card, Page, Pill } from '@/components/ui';
 
 const when = (s: string | null | undefined) => (s ? new Date(s).toLocaleString('en-GB') : '–');
@@ -11,13 +11,33 @@ const when = (s: string | null | undefined) => (s ? new Date(s).toLocaleString('
 function useCall<T>(name: string, data: unknown = {}) {
   const [value, setValue] = useState<T | null>(null);
   const [err, setErr] = useState('');
+  const [off, setOff] = useState(false);
   const key = JSON.stringify(data);
   const load = useCallback(() => {
     setErr('');
-    adminCall<T>(name, JSON.parse(key)).then(setValue, (e) => setErr(callMessage(e)));
+    serverCall<T>(name, JSON.parse(key)).then(
+      (v) => {
+        setValue(v);
+        setOff(serverIsOff());
+      },
+      (e) => {
+        setOff(serverIsOff());
+        setErr(callMessage(e));
+      },
+    );
   }, [name, key]);
   useEffect(load, [load]);
-  return { value, err, setErr, load };
+  return { value, err, setErr, load, off };
+}
+
+/** Shown where an action needs the server functions and they are not deployed yet. */
+function ServerOnly({ off, what }: { off: boolean; what: string }) {
+  if (!off) return null;
+  return (
+    <p className="m-0 rounded-lg bg-[#fdf1d8] px-3 py-2 text-[14px] text-[#6b4700]">
+      {what} runs on the server, and the Firebase functions are not deployed yet. Everything else on this page works; this starts working once they are.
+    </p>
+  );
 }
 
 function Msg({ ok, err }: { ok?: string; err?: string }) {
@@ -49,7 +69,7 @@ interface DatasetRow {
 }
 
 export function Datasets() {
-  const { value, err, setErr, load } = useCall<{ live: string | null; items: DatasetRow[] }>('listDatasets');
+  const { value, err, setErr, load, off } = useCall<{ live: string | null; items: DatasetRow[] }>('listDatasets');
   const [ok, setOk] = useState('');
   const [busy, setBusy] = useState('');
   const act = async (label: string, name: string, data: unknown, done: (r: Record<string, unknown>) => string) => {
@@ -57,7 +77,7 @@ export function Datasets() {
     setErr('');
     setBusy(label);
     try {
-      const r = await call<Record<string, unknown>>(name, data);
+      const r = await serverCall<Record<string, unknown>>(name, data);
       setOk(done(r));
       load();
     } catch (e) {
@@ -74,15 +94,16 @@ export function Datasets() {
       lead="Build a version from the published data (it is snapshotted and checked), publish it to the database, or roll back to the version that was live before. Only versions that pass every check can be published."
       actions={
         <>
-          <button type="button" className="btn btn-primary" disabled={!!busy} onClick={() => void act('build', 'buildDataset', {}, (r) => `Built ${r.version}: ${r.passed ? 'all checks passed' : 'some checks failed'}.`)}>
+          <button type="button" className="btn btn-primary" disabled={!!busy || off} onClick={() => void act('build', 'buildDataset', {}, (r) => `Built ${r.version}: ${r.passed ? 'all checks passed' : 'some checks failed'}.`)}>
             {busy === 'build' ? 'Building…' : 'Build a new version'}
           </button>
-          <button type="button" className="btn" disabled={!!busy || !value?.live} onClick={() => void act('rollback', 'rollbackDataset', {}, (r) => `Rolled back: ${r.version} is live again.`)}>
+          <button type="button" className="btn" disabled={!!busy || off || !value?.live} onClick={() => void act('rollback', 'rollbackDataset', {}, (r) => `Rolled back: ${r.version} is live again.`)}>
             {busy === 'rollback' ? 'Rolling back…' : 'Roll back'}
           </button>
         </>
       }
     >
+      <ServerOnly off={off} what="Building, publishing and rolling back datasets" />
       <Msg ok={ok} err={err} />
       <Card>
         <p className="m-0">
@@ -113,7 +134,7 @@ export function Datasets() {
             </ul>
           </details>
           {d.checksPassed && d.version !== value?.live && (
-            <button type="button" className="btn btn-primary mt-3" disabled={!!busy} onClick={() => void act(d.version, 'publishDataset', { version: d.version }, (r) => `Published ${r.version}. Previous: ${r.previous ?? 'none'}.`)}>
+            <button type="button" className="btn btn-primary mt-3" disabled={!!busy || off} onClick={() => void act(d.version, 'publishDataset', { version: d.version }, (r) => `Published ${r.version}. Previous: ${r.previous ?? 'none'}.`)}>
               {busy === d.version ? 'Publishing…' : 'Publish this version'}
             </button>
           )}
@@ -135,14 +156,14 @@ interface IngestRun {
 }
 
 export function Ingest() {
-  const { value, err, setErr, load } = useCall<{ items: IngestRun[] }>('listIngestRuns');
+  const { value, err, setErr, load, off } = useCall<{ items: IngestRun[] }>('listIngestRuns');
   const [ok, setOk] = useState('');
   const [busy, setBusy] = useState(false);
   const run = async () => {
     setBusy(true);
     setErr('');
     try {
-      const r = await call<{ changed?: number; error?: string }>('runIngest');
+      const r = await serverCall<{ changed?: number; error?: string }>('runIngest');
       setOk(r.error ? `Run finished with an error: ${r.error}` : `Run finished: ${r.changed} values differ from the published dataset.`);
       load();
     } catch (e) {
@@ -157,13 +178,14 @@ export function Ingest() {
       title="Ingest runs"
       lead="Every Monday at 03:00 (Nairobi) the ingest compares the latest official figures with the published dataset and lists the differences for a data steward. It never publishes by itself. Sources so far: World Bank WDI population; FAOSTAT, UN WPP and UN Comtrade follow."
       actions={
-        <button type="button" className="btn btn-primary" disabled={busy} onClick={() => void run()}>
+        <button type="button" className="btn btn-primary" disabled={busy || off} onClick={() => void run()}>
           {busy ? 'Running…' : 'Run now'}
         </button>
       }
     >
+      <ServerOnly off={off} what="The ingest" />
       <Msg ok={ok} err={err} />
-      {(value?.items ?? []).length === 0 && <Card><p className="m-0 text-muted">No runs yet.</p></Card>}
+      {value && value.items.length === 0 && <Card><p className="m-0 text-muted">No runs yet. The first runs on Monday at 03:00 (Nairobi) once the functions are deployed, or press Run now.</p></Card>}
       {(value?.items ?? []).map((r) => (
         <Card key={r.id}>
           <div className="flex flex-wrap items-center gap-2">
@@ -201,8 +223,8 @@ export function Users() {
   const setRole = async (uid: string, role: string) => {
     setErr('');
     try {
-      const r = await adminCall<{ claimPending?: boolean }>('setUserRole', { uid, role });
-      setOk(r.claimPending ? 'Role saved on the profile. It reaches their sign-in once the functions are deployed, or straight away with: pnpm make-admin <their e-mail> --role ' + role + '.' : 'Role changed. It reaches their sign-in within a minute (or when they sign in again).');
+      const r = await serverCall<{ claimPending?: boolean }>('setUserRole', { uid, role });
+      setOk(r.claimPending ? `Role changed to ${role.replace('_', ' ')}. It applies the next time they open the site.` : 'Role changed. It reaches their sign-in within a minute (or when they sign in again).');
       load();
     } catch (e) {
       setErr(callMessage(e));
@@ -300,19 +322,42 @@ export function Settings() {
   const [s, setS] = useState<PlatformSettings | null>(null);
   const [ok, setOk] = useState('');
   const [err, setErr] = useState('');
+  const auth = useAuth();
+  const [twoStep, setTwoStep] = useState<boolean | null>(null);
   useEffect(() => {
     void (async () => {
       const { getFirebase } = await import('@/lib/firebase');
       const { db } = await getFirebase();
       const { doc, getDoc } = await import('firebase/firestore');
-      setS(((await getDoc(doc(db, 'settings/platform'))).data() as PlatformSettings) ?? null);
-    })();
+      const [platform, security] = await Promise.all([getDoc(doc(db, 'settings/platform')), getDoc(doc(db, 'settings/security'))]);
+      const d = (platform.data() ?? {}) as Partial<PlatformSettings>;
+      setS({
+        features: { submissions: true, alerts: false, api: false, organisations: false, briefs: true, ...d.features },
+        apiQuotas: { free: 1000, member: 10000, org: 100000, ...d.apiQuotas },
+        maintenance: !!d.maintenance,
+      });
+      setTwoStep(security.get('requireTwoStep') !== false);
+    })().catch((e) => setErr(callMessage(e)));
   }, []);
+  const saveTwoStep = async (on: boolean) => {
+    setErr('');
+    setOk('');
+    try {
+      const { getFirebase } = await import('@/lib/firebase');
+      const { db } = await getFirebase();
+      const fs = await import('firebase/firestore');
+      await fs.setDoc(fs.doc(db, 'settings/security'), { requireTwoStep: on, updatedAt: fs.serverTimestamp(), updatedBy: auth.user!.uid });
+      setTwoStep(on);
+      setOk(on ? 'Two-step verification is now required for staff. Staff without it can view the console but not change anything.' : 'Two-step verification is no longer required for staff.');
+    } catch (e) {
+      setErr(callMessage(e));
+    }
+  };
   const save = async () => {
     if (!s) return;
     setErr('');
     try {
-      await call('updateSettings', { features: s.features, apiQuotas: s.apiQuotas, maintenance: s.maintenance });
+      await serverCall('updateSettings', { features: s.features, apiQuotas: s.apiQuotas, maintenance: s.maintenance });
       try {
         sessionStorage.removeItem('afb-maintenance'); // re-check maintenance mode on the next page
       } catch {
@@ -326,7 +371,7 @@ export function Settings() {
   const runAlerts = async () => {
     setErr('');
     try {
-      const r = await call<{ rules: number; fired: number; emails: number }>('runAlertsNow');
+      const r = await serverCall<{ rules: number; fired: number; emails: number }>('runAlertsNow');
       setOk(`Alerts checked: ${r.rules} rules, ${r.fired} new notifications, ${r.emails} e-mails queued.`);
     } catch (e) {
       setErr(callMessage(e));
@@ -335,6 +380,23 @@ export function Settings() {
   return (
     <Page kicker="Admin" title="Platform settings" actions={<button type="button" className="btn" onClick={() => void runAlerts()}>Run alerts now</button>}>
       <Msg ok={ok} err={err} />
+      {twoStep !== null && (
+        <Card title="Security">
+          <p className="m-0">
+            Two-step verification for staff: <Pill tone={twoStep ? 'go' : 'watch'}>{twoStep ? 'required' : 'not required'}</Pill>
+          </p>
+          <p className="m-0 mt-2 text-[13.5px] text-muted">
+            When required, staff (verifier and above) must sign in with an authenticator code before any change is accepted, by the database rules and by the server.
+            Turn it on once two-step sign-in is enabled for the project (Firebase Authentication with Identity Platform) and every staff member has set it up in their account.
+            Only super admins change this; once it is on, turning it off needs two-step too.
+          </p>
+          {auth.role === 'super_admin' && (
+            <button type="button" className="btn mt-3" onClick={() => void saveTwoStep(!twoStep)} disabled={twoStep && !auth.twoStep}>
+              {twoStep ? 'Stop requiring two-step' : 'Require two-step for staff'}
+            </button>
+          )}
+        </Card>
+      )}
       {s && (
         <>
           <Card title="Features">
@@ -396,7 +458,7 @@ export function Records({ preset }: { preset: keyof typeof PRESETS }) {
     for (const [k, v] of Object.entries(draft)) if (String(data[k]) !== v) patch[k] = typeof data[k] === 'number' ? Number(v) : v;
     if (!Object.keys(patch).length) return setErr('Nothing changed.');
     try {
-      await call('adminUpdate', { path: `${coll}/${id}`, patch, reason });
+      await serverCall('adminUpdate', { path: `${coll}/${id}`, patch, reason });
       setOk(`Saved ${coll}/${id}.`);
       setOpen(null);
       load();

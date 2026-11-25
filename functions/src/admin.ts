@@ -15,15 +15,16 @@ const parse = <S extends z.ZodTypeAny>(s: S, d: unknown): z.output<S> => {
 const iso = (v: unknown) => ((v as { toDate?: () => Date })?.toDate?.().toISOString() ?? null);
 
 export const adminListUsers = onCall(async (req) => {
-  requireStaff(req, 'platform_admin');
+  await requireStaff(req, 'platform_admin');
   const s = await db().collection('users').limit(500).get();
   return { items: s.docs.map((d) => ({ uid: d.id, name: d.get('name'), email: d.get('email'), role: d.get('role'), org: d.get('org') ?? null, createdAt: iso(d.get('createdAt')), lastSeen: iso(d.get('lastSeen')) })) };
 });
 
 export const setUserRole = onCall(async (req) => {
-  requireStaff(req, 'platform_admin');
+  await requireStaff(req, 'platform_admin');
   const { uid, role } = parse(z.object({ uid: z.string().min(1).max(128), role: z.enum(ROLES).exclude(['visitor']) }).strict(), req.data);
-  const mine = ((req.auth!.token as { role?: Role }).role ?? 'member') as Role;
+  const me = await db().doc(`users/${req.auth!.uid}`).get();
+  const mine = ((me.get('role') as Role | undefined) ?? (req.auth!.token as { role?: Role }).role ?? 'member') as Role;
   // Nobody grants a role above their own; only super admins create or remove super admins.
   if (!hasRole(mine, role)) throw new HttpsError('permission-denied', 'You cannot grant a role above your own.');
   const ref = db().doc(`users/${uid}`);
@@ -36,7 +37,7 @@ export const setUserRole = onCall(async (req) => {
 });
 
 export const adminListOrgs = onCall(async (req) => {
-  requireStaff(req, 'platform_admin');
+  await requireStaff(req, 'platform_admin');
   const s = await db().collection('organisations').limit(500).get();
   return { items: s.docs.map((d) => ({ id: d.id, name: d.get('name'), plan: d.get('plan'), memberCount: d.get('memberCount') ?? null, createdAt: iso(d.get('createdAt')) })) };
 });
@@ -50,7 +51,7 @@ const Settings = z
   .strict();
 
 export const updateSettings = onCall(async (req) => {
-  requireStaff(req, 'platform_admin');
+  await requireStaff(req, 'platform_admin');
   const patch = parse(Settings, req.data);
   const ref = db().doc('settings/platform');
   const before = (await ref.get()).data() ?? null;
@@ -64,7 +65,7 @@ const EDITABLE = ['buyers', 'suppliers', 'compliance', 'events', 'calls', 'polic
 const LOCKED = new Set(['ref', 'id', 'src', 'publishedAt', 'publishedBy', 'lastSubmission', 'editedAt', 'editedBy']);
 
 export const adminList = onCall(async (req) => {
-  requireStaff(req, 'data_steward');
+  await requireStaff(req, 'data_steward');
   const { collection, after, limit, q } = parse(
     z.object({ collection: z.enum(EDITABLE), after: z.string().max(200).optional(), limit: z.number().int().min(1).max(200).default(50), q: z.string().max(80).optional() }).strict(),
     req.data,
@@ -78,7 +79,7 @@ export const adminList = onCall(async (req) => {
 });
 
 export const adminUpdate = onCall(async (req) => {
-  requireStaff(req, 'data_steward');
+  await requireStaff(req, 'data_steward');
   const { path, patch, reason } = parse(
     z.object({ path: z.string().regex(/^[a-zA-Z]+\/[\w.-]+$/), patch: z.record(z.string().max(60), z.union([z.string().max(4000), z.number(), z.boolean(), z.null()])), reason: z.string().trim().min(5).max(500) }).strict(),
     req.data,

@@ -99,7 +99,7 @@ export const alerts = onSchedule({ schedule: 'every day 06:00', timeZone: 'Afric
 
 /** Run the daily alerts now (platform admins). */
 export const runAlertsNow = onCall({ timeoutSeconds: 300 }, async (req) => {
-  requireStaff(req, 'platform_admin');
+  await requireStaff(req, 'platform_admin');
   const out = await runAlerts();
   await audit(req.auth!.uid, 'runAlerts', 'alerts', null, out);
   return out;

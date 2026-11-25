@@ -12,21 +12,36 @@ service cloud.firestore {
       return {'member': 1, 'contributor': 2, 'verifier': 3, 'content_editor': 4,
               'data_steward': 5, 'platform_admin': 6, 'super_admin': 7};
     }
+    function ORG_ROLES() { return ['org_member', 'org_analyst', 'org_admin']; }
     function signedIn() { return request.auth != null; }
+    function profilePath() { return /databases/$(database)/documents/users/$(request.auth.uid); }
+    // The role on the profile is the source of truth (the syncRoleClaim function mirrors it to the
+    // token). Without a profile, the custom claim decides.
+    function roleName() {
+      return exists(profilePath()) ? get(profilePath()).data.get('role', 'member')
+        : request.auth.token.get('role', 'member');
+    }
     function rank() {
-      return !signedIn() ? 0
-        : (request.auth.token.role is string && request.auth.token.role in RANKS())
-          ? RANKS()[request.auth.token.role] : 1;
+      return !signedIn() ? 0 : (roleName() is string && roleName() in RANKS()) ? RANKS()[roleName()] : 1;
     }
     function twoStep() {
       return signedIn() && 'sign_in_second_factor' in request.auth.token.firebase;
     }
-    // A staff role at or above `min`, signed in with two-step verification.
-    function staff(min) { return rank() >= RANKS()[min] && twoStep(); }
+    // Two-step verification for staff is required unless settings/security says requireTwoStep: false
+    // (a missing document means it is required).
+    function twoStepRequired() {
+      return !exists(/databases/$(database)/documents/settings/security)
+        || get(/databases/$(database)/documents/settings/security).data.get('requireTwoStep', true) != false;
+    }
+    function twoStepOk() { return twoStep() || !twoStepRequired(); }
+    // A staff role at or above `min`, signed in with two-step verification when that is required.
+    function staff(min) { return signedIn() && rank() >= RANKS()[min] && twoStepOk(); }
     function isSelf(uid) { return signedIn() && request.auth.uid == uid; }
+    function myEmail() { return signedIn() ? string(request.auth.token.get('email', '')).lower() : ''; }
     function onlyChanges(keys) {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys);
     }
+    function validName(n) { return n is string && n.size() >= 2 && n.size() <= 120; }
 
     // ---- Public reference data: anyone reads; data stewards (or functions) write ----------------
     match /meta/{id}           { allow read: if true; allow write: if staff('data_steward'); }
@@ -50,9 +65,17 @@ service cloud.firestore {
     match /funders/{id}        { allow read: if true; allow write: if staff('data_steward'); }
     match /sources/{id}        { allow read: if true; allow write: if staff('data_steward'); }
     match /datasets/{id}       { allow read: if true; allow write: if false; } // functions only
+    match /ingestRuns/{id}     { allow read: if staff('data_steward'); allow write: if false; }
 
     // Platform settings: public (feature flags, languages); platform admins change them.
-    match /settings/{id}       { allow read: if true; allow write: if staff('platform_admin'); }
+    match /settings/{id}       { allow read: if true; allow write: if id != 'security' && staff('platform_admin'); }
+    // The two-step requirement: super admins change it, and once it is on, only with two-step themselves.
+    match /settings/security {
+      allow read: if true;
+      allow write: if signedIn() && rank() >= 7 && (twoStep() || !twoStepRequired())
+        && request.resource.data.keys().hasOnly(['requireTwoStep', 'updatedAt', 'updatedBy'])
+        && request.resource.data.requireTwoStep is bool;
+    }
 
     // ---- Users ------------------------------------------------------------------------------------
     match /users/{uid} {
@@ -65,7 +88,10 @@ service cloud.firestore {
         && request.resource.data.createdAt == request.time;
       // Change your own name, organisation, language and last-seen; never role, e-mail or createdAt.
       allow update: if (isSelf(uid) && onlyChanges(['name', 'org', 'language', 'lastSeen']))
-        || (staff('platform_admin') && onlyChanges(['role', 'org']) && request.resource.data.role in RANKS());
+        || (staff('platform_admin') && onlyChanges(['role', 'org']) && request.resource.data.role in RANKS()
+            // Nobody grants a role above their own; only super admins change a super admin.
+            && RANKS()[request.resource.data.role] <= rank()
+            && (resource.data.get('role', 'member') != 'super_admin' || rank() >= 7));
       allow delete: if false;
 
       match /saved/{id}  { allow read, write: if isSelf(uid); }
@@ -84,15 +110,74 @@ service cloud.firestore {
       }
     }
 
-    // ---- Organisations: members read; changes go through functions -------------------------------
+    // ---- Organisations ---------------------------------------------------------------------------
+    // Members read their organisation; its administrators manage it. The org functions do the same
+    // through the Admin SDK; these rules let the site work directly when the functions are not deployed.
     match /organisations/{orgId} {
-      allow read: if signedIn() && exists(/databases/$(database)/documents/organisations/$(orgId)/members/$(request.auth.uid));
-      allow write: if false;
+      function orgPath() { return /databases/$(database)/documents/organisations/$(orgId); }
+      function myMember() { return /databases/$(database)/documents/organisations/$(orgId)/members/$(request.auth.uid); }
+      function isMember() { return signedIn() && exists(myMember()); }
+      function isOrgAdmin() { return isMember() && get(myMember()).data.role == 'org_admin'; }
+
+      allow read: if isMember() || staff('platform_admin');
+      // Anyone signed in creates one, together with their own membership as its administrator.
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['name', 'plan', 'createdBy', 'createdAt', 'memberCount'])
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.plan == 'free'
+        && request.resource.data.memberCount == 1
+        && request.resource.data.createdAt == request.time
+        && validName(request.resource.data.name)
+        && existsAfter(myMember());
+      allow update: if (isOrgAdmin() && onlyChanges(['name', 'memberCount']) && validName(request.resource.data.name))
+        // Someone joining through an invitation adds one to the count, in the same write as joining.
+        || (signedIn() && !exists(myMember()) && existsAfter(myMember()) && onlyChanges(['memberCount'])
+            && request.resource.data.memberCount == resource.data.get('memberCount', 0) + 1);
+      allow delete: if false;
+
       match /members/{uid} {
-        allow read: if signedIn() && exists(/databases/$(database)/documents/organisations/$(orgId)/members/$(request.auth.uid));
-        allow write: if false;
+        function invitePath() {
+          return /databases/$(database)/documents/organisations/$(orgId)/invites/$(request.resource.data.invite);
+        }
+        allow read: if isMember() || staff('platform_admin');
+        allow create: if isSelf(uid)
+          && request.resource.data.keys().hasOnly(['role', 'email', 'name', 'joinedAt', 'invite'])
+          && request.resource.data.joinedAt == request.time
+          && request.resource.data.email == request.auth.token.get('email', '')
+          && (
+            // The founder, in the same write that creates the organisation.
+            (request.resource.data.role == 'org_admin' && !exists(orgPath())
+              && getAfter(orgPath()).data.createdBy == uid && !('invite' in request.resource.data))
+            // Or someone accepting an open invitation sent to their e-mail, with the role it offers.
+            || ('invite' in request.resource.data
+              && get(invitePath()).data.email == myEmail()
+              && get(invitePath()).data.status == 'pending'
+              && get(invitePath()).data.role == request.resource.data.role)
+          );
+        allow update: if isOrgAdmin() && onlyChanges(['role']) && request.resource.data.role in ORG_ROLES();
+        allow delete: if isOrgAdmin() || isSelf(uid);
       }
-      match /invites/{id} { allow read, write: if false; }
+      match /invites/{id} {
+        allow read: if isOrgAdmin() || (signedIn() && resource.data.email == myEmail());
+        allow create: if isOrgAdmin()
+          && request.resource.data.keys().hasOnly(['email', 'role', 'invitedBy', 'status', 'createdAt', 'orgName'])
+          && request.resource.data.email is string
+          && request.resource.data.email == request.resource.data.email.lower()
+          && request.resource.data.email.matches('^[^@ ]+@[^@ ]+$')
+          && request.resource.data.role in ORG_ROLES()
+          && request.resource.data.invitedBy == request.auth.uid
+          && request.resource.data.status == 'pending'
+          && request.resource.data.createdAt == request.time;
+        allow update: if (signedIn() && resource.data.email == myEmail() && resource.data.status == 'pending'
+            && onlyChanges(['status', 'acceptedAt', 'uid'])
+            && request.resource.data.status == 'accepted' && request.resource.data.uid == request.auth.uid)
+          || (isOrgAdmin() && onlyChanges(['status']) && request.resource.data.status == 'cancelled');
+        allow delete: if false;
+      }
+    }
+    // "My invitations" across organisations (a collection-group query on e-mail).
+    match /{path=**}/invites/{id} {
+      allow read: if signedIn() && resource.data.email == myEmail();
     }
 
     // ---- Submissions: suggestions and corrections ------------------------------------------------
@@ -106,19 +191,31 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly(['uid', 'target', 'text', 'sourceUrl', 'status', 'createdAt', 'page', 'item', 'patch'])
         && (!('patch' in request.resource.data) || (request.resource.data.patch is map && request.resource.data.patch.size() <= 20));
       allow read: if (signedIn() && resource.data.uid == request.auth.uid) || staff('verifier');
-      allow update: if staff('verifier') && onlyChanges(['status', 'reviewer', 'reviewedAt', 'note'])
-        && request.resource.data.status in ['pending', 'approved', 'rejected', 'published'];
+      allow update: if (staff('verifier') && onlyChanges(['status', 'reviewer', 'reviewedAt', 'note'])
+          && request.resource.data.status in ['pending', 'approved', 'rejected'])
+        // Data stewards mark an approved suggestion published once its change is applied.
+        || (staff('data_steward') && resource.data.status == 'approved'
+          && onlyChanges(['status', 'publishedAt', 'publishedTarget', 'publishedPatch'])
+          && request.resource.data.status == 'published');
       allow delete: if false;
     }
 
-    // ---- API keys and audit: written by functions only -------------------------------------------
+    // ---- API keys (written by functions only) and the audit log -----------------------------------
     match /apiKeys/{hash} {
       allow read: if signedIn() && resource.data.owner == request.auth.uid;
       allow write: if false;
     }
+    // Append-only: anyone signed in may add an entry in their own name (the org and staff actions do,
+    // when the functions are not deployed); nobody edits or deletes one.
     match /auditLog/{id} {
       allow read: if staff('platform_admin');
-      allow write: if false;
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['actor', 'action', 'target', 'before', 'after', 'time'])
+        && request.resource.data.actor == request.auth.uid
+        && request.resource.data.action is string && request.resource.data.action.size() <= 60
+        && request.resource.data.target is string && request.resource.data.target.size() <= 300
+        && request.resource.data.time == request.time;
+      allow update, delete: if false;
     }
 
     // Everything else: denied.

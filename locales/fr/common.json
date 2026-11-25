@@ -101,7 +101,10 @@
     "loading": "Chargement…",
     "offline": "Vous êtes hors ligne. Les pages déjà ouvertes fonctionnent toujours ; les nouvelles données se chargeront à la reconnexion.",
     "backOnline": "Vous êtes de nouveau en ligne.",
-    "serverOff": "Les fonctions serveur ne sont pas encore activées (fonctions Firebase non déployées). Tout le reste fonctionne ; ceci fonctionnera dès leur activation."
+    "serverOff": "Les fonctions serveur ne sont pas encore activées (fonctions Firebase non déployées). Tout le reste fonctionne ; ceci fonctionnera dès leur activation.",
+    "denied": "Vous n’avez pas l’autorisation de faire ceci. Si votre rôle a changé récemment, déconnectez-vous puis reconnectez-vous.",
+    "signInAgain": "Votre session a pris fin. Reconnectez-vous.",
+    "failed": "Cela n’a pas fonctionné. Réessayez dans un instant."
   },
   "system": {
     "errorTitle": "Un problème est survenu",
@@ -282,5 +285,28 @@
       "calls": "Appels à propositions",
       "sources": "Sources"
     }
+  },
+  "server": {
+    "badPath": "Indiquez l’enregistrement sous la forme collection/id, par exemple buyers/KE-R-01.",
+    "notEditable": "Les enregistrements {{coll}} ne peuvent pas être modifiés ici.",
+    "nothingChanged": "Rien n’a changé.",
+    "lockedFields": "Ces champs ne peuvent pas être modifiés : {{fields}}.",
+    "noRecord": "{{path}} n’existe pas.",
+    "unknownFields": "{{path}} n’a pas de champ {{fields}}.",
+    "badDecision": "Choisissez approuver ou rejeter.",
+    "noSubmission": "Suggestion introuvable.",
+    "already": "Cette suggestion est déjà {{status}}.",
+    "onlyApproved": "Seule une suggestion approuvée peut être publiée.",
+    "reason": "Donnez une raison d’au moins 5 caractères.",
+    "notMember": "Vous n’êtes plus membre de cette organisation.",
+    "orgName": "Le nom doit compter de 2 à 120 caractères.",
+    "hasOrg": "Vous appartenez déjà à une organisation.",
+    "badEmail": "Saisissez une adresse e-mail valide.",
+    "inviteClosed": "Cette invitation n’est plus ouverte.",
+    "inviteOther": "Cette invitation est destinée à une autre adresse e-mail.",
+    "leaveFirst": "Quittez d’abord votre organisation actuelle.",
+    "badRole": "Choisissez un rôle valide.",
+    "noMember": "Membre introuvable.",
+    "lastAdmin": "Une organisation doit avoir au moins un administrateur."
   }
 }

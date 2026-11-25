@@ -1,12 +1,34 @@
 import { getFirebase } from './firebase';
 import i18n from './i18n';
 
+/** The error used once the functions are known to be unreachable (and for server-only actions). */
+export class ServerOffError extends Error {
+  code = 'functions/unavailable';
+  constructor() {
+    super('functions unavailable');
+  }
+}
+
+/**
+ * Set after the first call that finds the functions missing, so later calls in this visit fail at once
+ * (and fall back) instead of waiting on a request that cannot succeed. Cleared on reload.
+ */
+let functionsDown = false;
+export const serverIsOff = () => functionsDown;
+
 /** Calls a Cloud Function (callable) and returns its data; errors carry the function's message. */
 export async function call<T = unknown>(name: string, data: unknown = {}): Promise<T> {
+  if (functionsDown) throw new ServerOffError();
   const { functions } = await getFirebase();
   const { httpsCallable } = await import('firebase/functions');
-  const res = await httpsCallable(functions, name)(data);
-  return res.data as T;
+  try {
+    const res = await httpsCallable(functions, name)(data);
+    return res.data as T;
+  } catch (e) {
+    // Offline is not "not deployed": only remember a missing deployment while the browser is online.
+    if (functionsUnavailable(e) && (typeof navigator === 'undefined' || navigator.onLine)) functionsDown = true;
+    throw e;
+  }
 }
 
 /**
@@ -17,16 +39,24 @@ export async function call<T = unknown>(name: string, data: unknown = {}): Promi
 export function functionsUnavailable(e: unknown): boolean {
   const err = e as { code?: string; message?: string; details?: unknown };
   return (
+    e instanceof ServerOffError ||
     err?.code === 'functions/unavailable' ||
     err?.code === 'functions/not-found' ||
     (err?.code === 'functions/internal' && /^internal$/i.test(String(err.message ?? '').trim()))
   );
 }
 
+/** A message a person can act on, never a raw code such as "internal" or "permission-denied". */
 export function callMessage(e: unknown): string {
   if (functionsUnavailable(e)) return i18n.t('status.serverOff');
+  const code = String((e as { code?: string })?.code ?? '');
+  // Firestore codes (direct reads and writes); a function's own errors keep their message.
+  if (code === 'permission-denied') return i18n.t('status.denied');
+  if (code === 'failed-precondition' && /index/i.test(String((e as Error).message))) return i18n.t('status.serverOff');
+  if (code === 'unauthenticated') return i18n.t('status.signInAgain');
   const m = (e as { message?: string })?.message ?? String(e);
-  return m.replace(/^(FirebaseError: )?/, '').replace(/ \(functions\/[\w-]+\)\.?$/, '');
+  const clean = m.replace(/^(FirebaseError: )?/, '').replace(/ \(functions\/[\w-]+\)\.?$/, '').trim();
+  return !clean || /^(internal|unknown|undefined)$/i.test(clean) ? i18n.t('status.failed') : clean;
 }
 
 export interface Submission {

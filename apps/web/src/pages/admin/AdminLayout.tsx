@@ -118,7 +118,7 @@ function Frame() {
             </button>
           </div>
         </div>
-        {!auth.twoStep && (
+        {auth.needsTwoStep && (
           <p role="status" className="m-0 bg-[#7a4b00] px-4 py-2 text-center text-[13px] font-semibold text-white">
             Two-step verification is not on for this account. You can view the console; changes that the server protects with two-step stay blocked until you turn it on in{' '}
             <Link to="/account" className="text-white underline">

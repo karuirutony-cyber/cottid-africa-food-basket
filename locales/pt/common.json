@@ -101,7 +101,10 @@
     "loading": "A carregar…",
     "offline": "Está offline. As páginas que já abriu continuam a funcionar; os novos dados serão carregados quando voltar a ligar-se.",
     "backOnline": "Está novamente online.",
-    "serverOff": "As funcionalidades do servidor ainda não estão ativas (funções Firebase não implementadas). Tudo o resto funciona; isto funcionará assim que forem ativadas."
+    "serverOff": "As funcionalidades do servidor ainda não estão ativas (funções Firebase não implementadas). Tudo o resto funciona; isto funcionará assim que forem ativadas.",
+    "denied": "Não tem permissão para fazer isto. Se a sua função mudou recentemente, termine a sessão e volte a entrar.",
+    "signInAgain": "A sua sessão terminou. Inicie sessão novamente.",
+    "failed": "Não funcionou. Tente novamente dentro de momentos."
   },
   "system": {
     "errorTitle": "Ocorreu um problema",
@@ -282,5 +285,28 @@
       "calls": "Convites à apresentação de propostas",
       "sources": "Fontes"
     }
+  },
+  "server": {
+    "badPath": "Indique o registo como coleção/id, por exemplo buyers/KE-R-01.",
+    "notEditable": "Os registos {{coll}} não podem ser alterados aqui.",
+    "nothingChanged": "Nada mudou.",
+    "lockedFields": "Estes campos não podem ser alterados: {{fields}}.",
+    "noRecord": "{{path}} não existe.",
+    "unknownFields": "{{path}} não tem o campo {{fields}}.",
+    "badDecision": "Escolha aprovar ou rejeitar.",
+    "noSubmission": "Sugestão não encontrada.",
+    "already": "Esta sugestão já está {{status}}.",
+    "onlyApproved": "Só uma sugestão aprovada pode ser publicada.",
+    "reason": "Indique um motivo com pelo menos 5 caracteres.",
+    "notMember": "Já não é membro desta organização.",
+    "orgName": "O nome precisa de 2 a 120 caracteres.",
+    "hasOrg": "Já pertence a uma organização.",
+    "badEmail": "Introduza um endereço de e-mail válido.",
+    "inviteClosed": "Este convite já não está aberto.",
+    "inviteOther": "Este convite é para outro endereço de e-mail.",
+    "leaveFirst": "Saia primeiro da sua organização atual.",
+    "badRole": "Escolha uma função válida.",
+    "noMember": "Membro não encontrado.",
+    "lastAdmin": "Uma organização precisa de pelo menos um administrador."
   }
 }

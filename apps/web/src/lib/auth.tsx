@@ -7,6 +7,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import type { MultiFactorResolver, TotpSecret, User } from 'firebase/auth';
 import { hasRole, requiresTwoStep, type Role } from '@afb/schema';
 import { getFirebase } from './firebase';
+import { call } from './call';
 
 export interface Profile {
   name: string;
@@ -21,6 +22,8 @@ interface AuthState {
   user: User | null;
   role: Role;
   twoStep: boolean;
+  /** settings/security.requireTwoStep: staff need a second factor (true unless switched off). */
+  twoStepRequired: boolean;
   profile: Profile | null;
 }
 
@@ -49,11 +52,9 @@ interface AuthApi extends AuthState {
  * which the security rules allow (own profile, role member, own e-mail, server timestamps).
  */
 async function ensureProfileDoc(user: User, extra: { name?: string; language?: string }): Promise<Profile | null> {
-  const { functions, db } = await getFirebase();
+  const { db } = await getFirebase();
   try {
-    const { httpsCallable } = await import('firebase/functions');
-    const res = await httpsCallable<{ name?: string; language?: string }, { profile: Profile }>(functions, 'ensureProfile')(extra);
-    return res.data.profile;
+    return (await call<{ profile: Profile }>('ensureProfile', extra)).profile;
   } catch (e) {
     console.info('ensureProfile function unavailable; creating the profile from the client', (e as { code?: string }).code ?? e);
   }
@@ -83,11 +84,34 @@ async function ensureProfileDoc(user: User, extra: { name?: string; language?: s
   }
 }
 
+/** The profile as stored (role included), or null if it cannot be read. */
+async function readProfile(uid: string): Promise<Profile | null> {
+  try {
+    const { db } = await getFirebase();
+    const fs = await import('firebase/firestore');
+    const d = (await fs.getDoc(fs.doc(db, 'users', uid))).data();
+    return d ? ({ name: d.name, email: d.email, role: d.role, org: d.org ?? null, language: d.language } as Profile) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** settings/security.requireTwoStep (public); a missing document or a failed read means required. */
+async function readTwoStepRequired(): Promise<boolean> {
+  try {
+    const { db } = await getFirebase();
+    const fs = await import('firebase/firestore');
+    return (await fs.getDoc(fs.doc(db, 'settings/security'))).get('requireTwoStep') !== false;
+  } catch {
+    return true;
+  }
+}
+
 const Ctx = createContext<AuthApi | null>(null);
 const HINT = 'afb-had-session';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<AuthState>({ ready: false, user: null, role: 'visitor', twoStep: false, profile: null });
+  const [state, setState] = useState<AuthState>({ ready: false, user: null, role: 'visitor', twoStep: false, twoStepRequired: true, profile: null });
   const [pendingTwoStep, setPending] = useState<MultiFactorResolver | null>(null);
   const [started, setStarted] = useState(() => {
     try {
@@ -115,7 +139,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           } catch {
             /* ignore */
           }
-          setState({ ready: true, user: null, role: 'visitor', twoStep: false, profile: null });
+          setState((s) => ({ ready: true, user: null, role: 'visitor', twoStep: false, twoStepRequired: s.twoStepRequired, profile: null }));
           return;
         }
         try {
@@ -131,12 +155,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           await user.getIdToken(true).catch(() => undefined);
         }
         const tok = await user.getIdTokenResult();
-        const role = ((tok.claims.role as Role | undefined) ?? 'member') as Role;
+        // The profile role is the source of truth (the rules read it too); the claim mirrors it.
+        const known = profile?.role ?? ((await readProfile(user.uid))?.role as Role | undefined);
+        const role = (known ?? (tok.claims.role as Role | undefined) ?? 'member') as Role;
+        const twoStepRequired = await readTwoStepRequired();
         // VITE_TEST_NO_MFA is set only in the emulator build (.env.emulators), where no authenticator exists.
         const twoStep =
           !!(tok.claims.firebase as { sign_in_second_factor?: string } | undefined)?.sign_in_second_factor ||
           import.meta.env.VITE_TEST_NO_MFA === 'true';
-        setState((s) => ({ ready: true, user, role, twoStep, profile: profile ?? s.profile }));
+        setState((s) => ({ ready: true, user, role, twoStep, twoStepRequired, profile: profile ?? s.profile }));
       });
     })();
     return () => off();
@@ -169,8 +196,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       ...state,
       pendingTwoStep,
-      needsTwoStep: !!state.user && requiresTwoStep(state.role) && !state.twoStep,
-      can: (min) => hasRole(state.role, min) && (!requiresTwoStep(min) || state.twoStep),
+      needsTwoStep: !!state.user && state.twoStepRequired && requiresTwoStep(state.role) && !state.twoStep,
+      can: (min) => hasRole(state.role, min) && (!requiresTwoStep(min) || state.twoStep || !state.twoStepRequired),
       async signInGoogle() {
         const { auth, mod } = await withAuth();
         await catchMfa(() => mod.signInWithPopup(auth, new mod.GoogleAuthProvider()));

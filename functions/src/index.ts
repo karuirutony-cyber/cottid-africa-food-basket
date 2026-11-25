@@ -78,7 +78,7 @@ export const syncRoleClaim = onDocumentWritten('users/{uid}', async (event) => {
 
 // ---- bootstrap: build every reference collection (platform admins, idempotent) --------------------
 export const bootstrap = onCall({ timeoutSeconds: 540, memory: '1GiB' }, async (req) => {
-  requireStaff(req, 'platform_admin');
+  await requireStaff(req, 'platform_admin');
   const D = { ...(await loadPublished()), names: { en: namesEn, fr: namesFr, pt: namesPt, ar: namesAr, sw: namesSw } } as unknown as Datasets;
   const docs = buildDocs(D);
   for (let i = 0; i < docs.length; i += 400) {

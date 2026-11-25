@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
-import { call, callMessage, type Submission } from '@/lib/call';
-import { adminCall } from '@/lib/adminData';
+import { callMessage, type Submission } from '@/lib/call';
+import { serverCall } from '@/lib/serverless';
 import { Card, Kpi, KpiRow, Page, Pill } from '@/components/ui';
 import { statusTone } from '@/pages/contribute/Contribute';
 
@@ -24,7 +24,7 @@ export function Dashboard() {
   const [s, setS] = useState<Stats | null>(null);
   const [err, setErr] = useState('');
   useEffect(() => {
-    adminCall<Stats>('adminStats').then(setS, (e) => setErr(callMessage(e)));
+    serverCall<Stats>('adminStats').then(setS, (e) => setErr(callMessage(e)));
   }, []);
   const links: [string, string, boolean][] = [
     ['/admin/review', 'Review queue', auth.can('verifier')],
@@ -71,7 +71,7 @@ function PublishForm({ sub, onDone }: { sub: Submission; onDone: () => void }) {
       setCurrent(null);
       return;
     }
-    call<{ exists: boolean; data: Record<string, unknown> | null }>('getRecord', { path: target }).then(
+    serverCall<{ exists: boolean; data: Record<string, unknown> | null }>('getRecord', { path: target }).then(
       (r) => setCurrent(r.exists ? r.data : null),
       () => setCurrent(null),
     );
@@ -80,7 +80,7 @@ function PublishForm({ sub, onDone }: { sub: Submission; onDone: () => void }) {
     setErr('');
     setBusy(true);
     try {
-      await call('publishRecord', { id: sub.id, target, patch: Object.fromEntries(rows.filter(([k, v]) => k && v)) });
+      await serverCall('publishRecord', { id: sub.id, target, patch: Object.fromEntries(rows.filter(([k, v]) => k && v)) });
       onDone();
     } catch (e) {
       setErr(callMessage(e));
@@ -128,7 +128,7 @@ export function ReviewQueue() {
   const [msg, setMsg] = useState('');
   const load = useCallback(() => {
     setItems(null);
-    adminCall<{ items: Submission[] }>('reviewQueue', { status }).then((r) => setItems(r.items), (e) => {
+    serverCall<{ items: Submission[] }>('reviewQueue', { status }).then((r) => setItems(r.items), (e) => {
       setMsg(callMessage(e));
       setItems([]);
     });
@@ -136,7 +136,7 @@ export function ReviewQueue() {
   useEffect(load, [load]);
   const decide = async (id: string, decision: 'approved' | 'rejected') => {
     try {
-      await adminCall('review', { id, decision, note: notes[id] ?? '' });
+      await serverCall('review', { id, decision, note: notes[id] ?? '' });
       setMsg(decision === 'approved' ? 'Approved. A data steward can now publish it.' : 'Marked as not accepted.');
       load();
     } catch (e) {
@@ -243,7 +243,7 @@ export function AuditLog() {
   const [rows, setRows] = useState<AuditRow[] | null>(null);
   const [err, setErr] = useState('');
   useEffect(() => {
-    adminCall<{ items: AuditRow[] }>('auditList', { limit: 200 }).then((r) => setRows(r.items), (e) => {
+    serverCall<{ items: AuditRow[] }>('auditList', { limit: 200 }).then((r) => setRows(r.items), (e) => {
       setErr(callMessage(e));
       setRows([]);
     });

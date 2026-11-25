@@ -11,7 +11,7 @@ import {
   initializeTestEnvironment,
   type RulesTestEnvironment,
 } from '@firebase/rules-unit-testing';
-import { doc, getDoc, setDoc, updateDoc, deleteDoc, serverTimestamp, collection, addDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, deleteDoc, serverTimestamp, collection, addDoc, writeBatch, getDocs, query, where, collectionGroup } from 'firebase/firestore';
 
 let env: RulesTestEnvironment;
 const PROJECT = 'demo-cottid-rules';
@@ -165,10 +165,16 @@ describe('submissions', () => {
 });
 
 describe('audit log and API keys', () => {
-  it('the audit log is read by platform admins and above only, and never written by clients', async () => {
+  it('the audit log is read by platform admins and above only; entries are appended in your own name, never changed', async () => {
     await assertSucceeds(getDoc(doc(as('pat', 'platform_admin', true), 'auditLog/a1')));
     await assertFails(getDoc(doc(as('dee', 'data_steward', true), 'auditLog/a1')));
     await assertFails(setDoc(doc(as('sam', 'super_admin', true), 'auditLog/a2'), { x: 1 }));
+    const entry = (actor: string) => ({ actor, action: 'review:approved', target: 'submissions/s1', before: null, after: null, time: serverTimestamp() });
+    await assertSucceeds(addDoc(collection(as('alice'), 'auditLog'), entry('alice')));
+    await assertFails(addDoc(collection(as('alice'), 'auditLog'), entry('bob')));
+    await assertFails(addDoc(collection(visitor(), 'auditLog'), entry('alice')));
+    await assertFails(updateDoc(doc(as('sam', 'super_admin', true), 'auditLog/a1'), { action: 'x' }));
+    await assertFails(deleteDoc(doc(as('sam', 'super_admin', true), 'auditLog/a1')));
   });
   it('API keys are readable by their owner and written by functions only', async () => {
     await assertSucceeds(getDoc(doc(as('alice'), 'apiKeys/h1')));
@@ -182,13 +188,112 @@ describe('default deny', () => {
     await assertFails(getDoc(doc(visitor(), 'secrets/x')));
     await assertFails(setDoc(doc(as('sam', 'super_admin', true), 'secrets/x'), { x: 1 }));
   });
-  it('organisations are readable by members only, written by functions only', async () => {
+  it('only the security setting itself is closed to platform admins', async () => {
+    await assertFails(setDoc(doc(as('pat', 'platform_admin', true), 'settings/security'), { requireTwoStep: false }));
+  });
+});
+
+describe('roles from the profile, and the two-step setting', () => {
+  it('the role on the profile counts, so a role changed in the console works without the functions', async () => {
     await env.withSecurityRulesDisabled(async (ctx) => {
-      await setDoc(doc(ctx.firestore(), 'organisations/o1'), { name: 'Org' });
-      await setDoc(doc(ctx.firestore(), 'organisations/o1/members/alice'), { role: 'org_admin' });
+      await setDoc(doc(ctx.firestore(), 'users/vera'), { name: 'Vera', email: 'vera@example.com', role: 'verifier' });
     });
+    await assertSucceeds(getDoc(doc(as('vera', undefined, true), 'submissions/s1')));
+    // A claim above the profile role does not count once the profile exists.
+    await assertFails(setDoc(doc(as('alice', 'super_admin', true), 'countries/KE'), { x: 1 }));
+  });
+  it('with requireTwoStep false, staff act without a second factor; members still cannot', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'settings/security'), { requireTwoStep: false });
+    });
+    await assertSucceeds(setDoc(doc(as('dee', 'data_steward', false), 'countries/KE'), { x: 1 }));
+    await assertSucceeds(updateDoc(doc(as('vic', 'verifier', false), 'submissions/s1'), { status: 'approved', reviewer: 'vic', reviewedAt: serverTimestamp(), note: '' }));
+    await assertFails(updateDoc(doc(as('alice'), 'submissions/s1'), { status: 'approved' }));
+  });
+  it('super admins switch two-step on; once on, only with two-step themselves', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'settings/security'), { requireTwoStep: false });
+    });
+    await assertFails(setDoc(doc(as('pat', 'platform_admin', false), 'settings/security'), { requireTwoStep: true }));
+    await assertSucceeds(setDoc(doc(as('sam', 'super_admin', false), 'settings/security'), { requireTwoStep: true }));
+    await assertFails(setDoc(doc(as('sam', 'super_admin', false), 'settings/security'), { requireTwoStep: false }));
+    await assertSucceeds(setDoc(doc(as('sam', 'super_admin', true), 'settings/security'), { requireTwoStep: false }));
+  });
+  it('platform admins never grant a role above their own, nor change a super admin', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'users/sue'), { name: 'Sue', email: 'sue@example.com', role: 'super_admin' });
+    });
+    await assertFails(updateDoc(doc(as('pat', 'platform_admin', true), 'users/bob'), { role: 'super_admin' }));
+    await assertFails(updateDoc(doc(as('pat', 'platform_admin', true), 'users/sue'), { role: 'member' }));
+    await assertSucceeds(updateDoc(doc(as('sam', 'super_admin', true), 'users/bob'), { role: 'super_admin' }));
+  });
+  it('data stewards publish an approved suggestion; nobody publishes a pending one', async () => {
+    const pub = { status: 'published', publishedAt: serverTimestamp(), publishedTarget: 'buyers/KE-R-01', publishedPatch: { city: 'Thika' } };
+    await assertFails(updateDoc(doc(as('dee', 'data_steward', true), 'submissions/s1'), pub));
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await updateDoc(doc(ctx.firestore(), 'submissions/s1'), { status: 'approved' });
+    });
+    await assertFails(updateDoc(doc(as('vic', 'verifier', true), 'submissions/s1'), pub));
+    await assertSucceeds(updateDoc(doc(as('dee', 'data_steward', true), 'submissions/s1'), pub));
+  });
+});
+
+describe('organisations', () => {
+  const found = (uid: string, orgId: string, extra: Record<string, unknown> = {}) => {
+    const db = as(uid);
+    const batch = writeBatch(db);
+    batch.set(doc(db, `organisations/${orgId}`), { name: 'Shamba Co', plan: 'free', createdBy: uid, createdAt: serverTimestamp(), memberCount: 1, ...extra });
+    batch.set(doc(db, `organisations/${orgId}/members/${uid}`), { role: 'org_admin', email: `${uid}@example.com`, name: uid, joinedAt: serverTimestamp() });
+    return batch.commit();
+  };
+  beforeEach(async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      const db = ctx.firestore();
+      await setDoc(doc(db, 'organisations/o1'), { name: 'Org', plan: 'free', createdBy: 'alice', memberCount: 1 });
+      await setDoc(doc(db, 'organisations/o1/members/alice'), { role: 'org_admin', email: 'alice@example.com' });
+      await setDoc(doc(db, 'organisations/o1/invites/i1'), { email: 'bob@example.com', role: 'org_analyst', status: 'pending', orgName: 'Org' });
+    });
+  });
+  it('platform admins list every organisation; members cannot', async () => {
+    await assertSucceeds(getDocs(collection(as('pat', 'platform_admin', true), 'organisations')));
+    await assertFails(getDocs(collection(as('alice'), 'organisations')));
+  });
+  it('the invitee finds their invitations across organisations', async () => {
+    const mine = (db: ReturnType<typeof as>, email: string) => getDocs(query(collectionGroup(db, 'invites'), where('email', '==', email), where('status', '==', 'pending')));
+    await assertSucceeds(mine(as('bob'), 'bob@example.com'));
+    await assertFails(mine(as('carol'), 'bob@example.com'));
+  });
+  it('members read their organisation; others cannot', async () => {
     await assertSucceeds(getDoc(doc(as('alice'), 'organisations/o1')));
     await assertFails(getDoc(doc(as('bob'), 'organisations/o1')));
-    await assertFails(setDoc(doc(as('alice'), 'organisations/o1'), { name: 'x' }));
+    await assertFails(getDoc(doc(as('bob'), 'organisations/o1/members/alice')));
+  });
+  it('anyone signed in founds an organisation as its administrator, nothing more', async () => {
+    await assertSucceeds(found('carol', 'o2'));
+    await assertFails(found('dave', 'o3', { plan: 'enterprise' }));
+    await assertFails(found('dave', 'o1')); // an existing one
+    await assertFails(setDoc(doc(as('bob'), 'organisations/o1/members/bob'), { role: 'org_admin', email: 'bob@example.com', name: 'Bob', joinedAt: serverTimestamp() }));
+  });
+  it('administrators rename, invite and manage members; members cannot', async () => {
+    await assertSucceeds(updateDoc(doc(as('alice'), 'organisations/o1'), { name: 'Org Ltd' }));
+    await assertFails(updateDoc(doc(as('alice'), 'organisations/o1'), { plan: 'enterprise' }));
+    const inv = { email: 'carol@example.com', role: 'org_member', invitedBy: 'alice', status: 'pending', createdAt: serverTimestamp(), orgName: 'Org' };
+    await assertSucceeds(addDoc(collection(as('alice'), 'organisations/o1/invites'), inv));
+    await assertFails(addDoc(collection(as('alice'), 'organisations/o1/invites'), { ...inv, role: 'owner' }));
+    await assertFails(addDoc(collection(as('bob'), 'organisations/o1/invites'), { ...inv, invitedBy: 'bob' }));
+  });
+  it('the invitee sees the invitation and joins with the role it offers', async () => {
+    await assertSucceeds(getDoc(doc(as('bob'), 'organisations/o1/invites/i1')));
+    await assertFails(getDoc(doc(as('carol'), 'organisations/o1/invites/i1')));
+    const member = { role: 'org_admin', email: 'bob@example.com', name: 'Bob', joinedAt: serverTimestamp(), invite: 'i1' };
+    await assertFails(setDoc(doc(as('bob'), 'organisations/o1/members/bob'), member)); // a higher role than offered
+    await assertFails(setDoc(doc(as('carol'), 'organisations/o1/members/carol'), { ...member, role: 'org_analyst', email: 'carol@example.com' }));
+    const db = as('bob');
+    const batch = writeBatch(db);
+    batch.set(doc(db, 'organisations/o1/members/bob'), { ...member, role: 'org_analyst' });
+    batch.update(doc(db, 'organisations/o1/invites/i1'), { status: 'accepted', acceptedAt: serverTimestamp(), uid: 'bob' });
+    batch.update(doc(db, 'organisations/o1'), { memberCount: 2 });
+    await assertSucceeds(batch.commit());
+    await assertSucceeds(getDoc(doc(as('bob'), 'organisations/o1')));
   });
 });

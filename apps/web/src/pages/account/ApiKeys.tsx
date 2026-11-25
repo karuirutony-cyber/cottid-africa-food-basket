@@ -2,7 +2,8 @@ import { useCallback, useEffect, useId, useState, type FormEvent } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/lib/auth';
-import { call, callMessage } from '@/lib/call';
+import { callMessage, serverIsOff } from '@/lib/call';
+import { serverCall } from '@/lib/serverless';
 import { Card, Page, Pill } from '@/components/ui';
 
 interface KeyRow {
@@ -25,13 +26,18 @@ export default function ApiKeys() {
   const [fresh, setFresh] = useState<string | null>(null);
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
+  const [off, setOff] = useState(false);
   const nameId = useId();
   const load = useCallback(() => {
-    call<{ items: KeyRow[] }>('listApiKeys').then(
-      (r) => setKeys(r.items.sort((a, b) => Number(a.revoked) - Number(b.revoked))),
+    serverCall<{ items: KeyRow[] }>('listApiKeys').then(
+      (r) => {
+        setKeys(r.items.sort((a, b) => Number(a.revoked) - Number(b.revoked)));
+        setOff(serverIsOff());
+      },
       (e) => {
-        setErr(callMessage(e));
         setKeys([]);
+        setOff(serverIsOff());
+        if (!serverIsOff()) setErr(callMessage(e));
       },
     );
   }, []);
@@ -46,7 +52,7 @@ export default function ApiKeys() {
     setErr('');
     setBusy(true);
     try {
-      const r = await call<{ key: string }>('createApiKey', { name: name.trim() });
+      const r = await serverCall<{ key: string }>('createApiKey', { name: name.trim() });
       setFresh(r.key);
       setName('');
       load();
@@ -58,7 +64,7 @@ export default function ApiKeys() {
   };
   const revoke = async (id: string) => {
     try {
-      await call('revokeApiKey', { id });
+      await serverCall('revokeApiKey', { id });
       load();
     } catch (x) {
       setErr(callMessage(x));
@@ -68,12 +74,13 @@ export default function ApiKeys() {
   return (
     <Page kicker={t('section.account')} title={t('page.apiKeys')} lead={t('apikeys.lead')}>
       <Card title={t('apikeys.create')}>
+        {off && <p className="m-0 mb-3 rounded-lg bg-[#fdf1d8] px-3 py-2 text-[14px] text-[#6b4700]">{t('status.serverOff')}</p>}
         <form onSubmit={create} className="flex flex-wrap items-end gap-2">
           <label htmlFor={nameId} className="grid min-w-[240px] flex-1 gap-1 text-[13px] font-semibold text-muted">
             {t('apikeys.name')}
             <input id={nameId} required maxLength={60} value={name} onChange={(e) => setName(e.target.value)} className="min-h-[44px] rounded-lg border border-line bg-surface px-3 text-[15px] text-ink" />
           </label>
-          <button className="btn btn-primary" disabled={busy} aria-busy={busy}>
+          <button className="btn btn-primary" disabled={busy || off} aria-busy={busy}>
             {busy ? t('status.loading') : t('apikeys.createButton')}
           </button>
         </form>

@@ -101,7 +101,10 @@
     "loading": "Loading…",
     "offline": "You are offline. Pages you have opened before still work; new data will load when you reconnect.",
     "backOnline": "You are back online.",
-    "serverOff": "The server features are not switched on yet (Firebase functions are not deployed). Everything else works; this will start working once they are."
+    "serverOff": "The server features are not switched on yet (Firebase functions are not deployed). Everything else works; this will start working once they are.",
+    "denied": "You do not have permission to do this. If your role was changed recently, sign out and back in.",
+    "signInAgain": "Your session has ended. Sign in again.",
+    "failed": "That did not work. Try again in a moment."
   },
   "system": {
     "errorTitle": "Something went wrong",
@@ -282,5 +285,28 @@
       "calls": "Calls for proposals",
       "sources": "Sources"
     }
+  },
+  "server": {
+    "badPath": "Give the record as collection/id, for example buyers/KE-R-01.",
+    "notEditable": "{{coll}} records cannot be changed here.",
+    "nothingChanged": "Nothing changed.",
+    "lockedFields": "These fields cannot be changed: {{fields}}.",
+    "noRecord": "{{path}} does not exist.",
+    "unknownFields": "{{path}} has no field {{fields}}.",
+    "badDecision": "Choose approve or reject.",
+    "noSubmission": "No such suggestion.",
+    "already": "This suggestion is already {{status}}.",
+    "onlyApproved": "Only an approved suggestion can be published.",
+    "reason": "Give a reason of at least 5 characters.",
+    "notMember": "You are no longer a member of this organisation.",
+    "orgName": "The name needs 2 to 120 characters.",
+    "hasOrg": "You already belong to an organisation.",
+    "badEmail": "Enter a valid e-mail address.",
+    "inviteClosed": "This invitation is no longer open.",
+    "inviteOther": "This invitation is for a different e-mail address.",
+    "leaveFirst": "Leave your current organisation first.",
+    "badRole": "Choose a valid role.",
+    "noMember": "No such member.",
+    "lastAdmin": "An organisation needs at least one administrator."
   }
 }

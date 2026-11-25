@@ -23,10 +23,17 @@ const claims = (req: CallableRequest) => (req.auth?.token ?? {}) as Claims;
  */
 const noMfaForTests = () => process.env.FUNCTIONS_EMULATOR === 'true' && process.env.AFB_TEST_NO_MFA === '1';
 
-export function requireStaff(req: CallableRequest, min: Role) {
+/**
+ * Staff checks, the same as the security rules: the role on the profile (the claim mirrors it), and a
+ * second factor unless settings/security has requireTwoStep: false (a missing document means required).
+ */
+export async function requireStaff(req: CallableRequest, min: Role) {
   if (!req.auth) throw new HttpsError('unauthenticated', 'Sign in first.');
-  if (!hasRole(claims(req).role ?? 'member', min)) throw new HttpsError('permission-denied', `Needs the ${min} role.`);
-  if (!claims(req).firebase?.sign_in_second_factor && !noMfaForTests())
+  const [profile, security] = await Promise.all([db().doc(`users/${req.auth.uid}`).get(), db().doc('settings/security').get()]);
+  const role = ((profile.exists ? profile.get('role') : claims(req).role) ?? 'member') as Role;
+  if (!hasRole(role, min)) throw new HttpsError('permission-denied', `Needs the ${min} role.`);
+  const required = security.get('requireTwoStep') !== false;
+  if (required && !claims(req).firebase?.sign_in_second_factor && !noMfaForTests())
     throw new HttpsError('permission-denied', 'Staff actions need two-step verification. Turn it on in your account.');
 }
 
@@ -84,7 +91,7 @@ const shape = (d: FirebaseFirestore.QueryDocumentSnapshot) => {
 };
 
 export const reviewQueue = onCall(async (req) => {
-  requireStaff(req, 'verifier');
+  await requireStaff(req, 'verifier');
   const { status, limit } = parse(QueueInput, req.data);
   const snap = await db().collection('submissions').where('status', '==', status).orderBy('createdAt', 'desc').limit(limit).get();
   return { items: snap.docs.map(shape) };
@@ -98,7 +105,7 @@ export const myContributions = onCall(async (req) => {
 
 /** The record a submission points at, so the reviewer sees what would change. */
 export const getRecord = onCall(async (req) => {
-  requireStaff(req, 'verifier');
+  await requireStaff(req, 'verifier');
   const { path } = parse(z.object({ path: z.string().regex(/^[a-zA-Z]+\/[\w.-]+$/) }).strict(), req.data);
   if (!(PUBLISHABLE as readonly string[]).includes(path.split('/')[0]!)) throw new HttpsError('invalid-argument', 'Not a publishable record.');
   const s = await db().doc(path).get();
@@ -109,7 +116,7 @@ export const getRecord = onCall(async (req) => {
 const ReviewInput = z.object({ id: z.string().min(1).max(100), decision: z.enum(['approved', 'rejected']), note: z.string().max(2000).default('') }).strict();
 
 export const review = onCall(async (req) => {
-  requireStaff(req, 'verifier');
+  await requireStaff(req, 'verifier');
   const { id, decision, note } = parse(ReviewInput, req.data);
   const ref = db().doc(`submissions/${id}`);
   const before = await db().runTransaction(async (tx) => {
@@ -135,7 +142,7 @@ const PublishInput = z
 const LOCKED = new Set(['ref', 'id', 'src', 'publishedAt', 'publishedBy', 'lastSubmission']);
 
 export const publishRecord = onCall(async (req) => {
-  requireStaff(req, 'data_steward');
+  await requireStaff(req, 'data_steward');
   const { id, target, patch } = parse(PublishInput, req.data);
   const coll = target.split('/')[0]!;
   if (!(PUBLISHABLE as readonly string[]).includes(coll)) throw new HttpsError('invalid-argument', `${coll} records cannot be published from a contribution.`);
@@ -162,14 +169,14 @@ export const publishRecord = onCall(async (req) => {
 
 // ---- staff console reads ------------------------------------------------------------------------
 export const auditList = onCall(async (req) => {
-  requireStaff(req, 'platform_admin');
+  await requireStaff(req, 'platform_admin');
   const { limit } = parse(z.object({ limit: z.number().int().min(1).max(500).default(100) }).strict(), req.data);
   const snap = await db().collection('auditLog').orderBy('time', 'desc').limit(limit).get();
   return { items: snap.docs.map((d) => ({ id: d.id, ...d.data(), time: iso(d.get('time')) })) };
 });
 
 export const adminStats = onCall(async (req) => {
-  requireStaff(req, 'verifier');
+  await requireStaff(req, 'verifier');
   const c = async (q: FirebaseFirestore.Query) => (await q.count().get()).data().count;
   const s = db().collection('submissions');
   const [pending, approved, published, rejected, users] = await Promise.all([
