@@ -12,6 +12,8 @@ export function registerPwa(): void {
         onRegisteredSW(_url, registration) {
           if (!registration) return;
           const check = () => {
+            // A version left waiting by an older worker is told to take over.
+            registration.waiting?.postMessage({ type: 'SKIP_WAITING' });
             if (navigator.onLine) void registration.update().catch(() => undefined);
           };
           check();

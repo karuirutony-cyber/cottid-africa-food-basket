@@ -62,6 +62,10 @@ export default defineConfig({
           '**/assets/legacy-*.js',
           '**/assets/names-*.js',
         ],
+        // A new version takes over at once (and the page reloads into it), instead of waiting until
+        // every tab of the site is closed.
+        skipWaiting: true,
+        clientsClaim: true,
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//, /^\/__\//],
         cleanupOutdatedCaches: true,
